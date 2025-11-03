@@ -24,7 +24,7 @@ if ($user_type === 'employee') {
     // Admin can check in for any employee
     $employee_id = $_GET['employee_id'] ?? null;
     if (!$employee_id) {
-        $_SESSION['error'] = "Please select an employee";
+        $_SESSION['error'] = "Please select an employee from the 'Check In/Out' dropdown in the Attendance page";
         header("Location: attendance.php");
         exit;
     }
@@ -193,17 +193,19 @@ $current_date = date('l, F j, Y');
         }
 
         .btn {
-            padding: 18px;
+            padding: 28px 60px; /* Bigger: vertical 28px, horizontal 60px */
             border: none;
-            border-radius: 12px;
-            font-size: 18px;
+            border-radius: 15px;
+            font-size: 22px; /* Bigger font */
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
+            min-width: 320px; /* Wider buttons - increased from 250px */
+            width: 100%; /* Full width of container */
         }
 
         .btn:disabled {
@@ -341,7 +343,7 @@ $current_date = date('l, F j, Y');
                 <input type="hidden" name="location" id="checkin-location">
                 
                 <button type="submit" class="btn btn-checkin" id="checkin-btn" <?php echo $has_checked_in ? 'disabled' : ''; ?>>
-                    <span>✓</span>
+                    <span style="font-size: 28px;">✓</span>
                     <span>Check In Now</span>
                 </button>
             </form>
@@ -354,7 +356,7 @@ $current_date = date('l, F j, Y');
                 <input type="hidden" name="location" id="checkout-location">
                 
                 <button type="submit" class="btn btn-checkout" id="checkout-btn" <?php echo (!$has_checked_in || $has_checked_out) ? 'disabled' : ''; ?>>
-                    <span>🚪</span>
+                    <span style="font-size: 28px;">🚪</span>
                     <span>Check Out</span>
                 </button>
             </form>

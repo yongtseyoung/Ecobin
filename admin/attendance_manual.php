@@ -118,14 +118,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .sidebar-logo {
-            width: 90px;
-            height: 90px;
+            width: 120px;
+            height: 120px;
             background: #CEDEBD;
             border-radius: 50%;
             margin: 0 auto 30px;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
+        }
+
+        .sidebar-logo img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
         }
 
         .nav-menu {
@@ -330,7 +337,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <span style="font-size: 40px;">🗑️</span>
+            <img src="../assets/images/logo.png" alt="EcoBin Logo">
         </div>
 
         <nav class="nav-menu">
@@ -356,11 +363,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </a>
             <a href="performance.php" class="nav-item">
                 <span class="icon">📈</span>
-                <span>Performance</span>
+                <span>Employee Performance</span>
             </a>
             <a href="analytics.php" class="nav-item">
                 <span class="icon">📊</span>
-                <span>Analytics</span>
+                <span>Waste Analytics</span>
             </a>
             <a href="inventory.php" class="nav-item">
                 <span class="icon">📦</span>
@@ -368,11 +375,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </a>
             <a href="leave.php" class="nav-item">
                 <span class="icon">📅</span>
-                <span>Leave</span>
+                <span>Leave Management</span>
             </a>
             <a href="maintenance.php" class="nav-item">
                 <span class="icon">🔧</span>
-                <span>Maintenance</span>
+                <span>Maintenance & Issues</span>
             </a>
         </nav>
     </aside>

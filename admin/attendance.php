@@ -104,14 +104,21 @@ if ($selected_date === date('Y-m-d')) {
         }
 
         .sidebar-logo {
-            width: 90px;
-            height: 90px;
+            width: 120px;
+            height: 120px;
             background: #CEDEBD;
             border-radius: 50%;
             margin: 0 auto 30px;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
+        }
+
+        .sidebar-logo img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
         }
 
         .nav-menu {
@@ -401,7 +408,7 @@ if ($selected_date === date('Y-m-d')) {
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <span style="font-size: 40px;">🗑️</span>
+            <img src="../assets/images/logo.png" alt="EcoBin Logo">
         </div>
 
         <nav class="nav-menu">
@@ -427,11 +434,11 @@ if ($selected_date === date('Y-m-d')) {
             </a>
             <a href="performance.php" class="nav-item">
                 <span class="icon">📈</span>
-                <span>Performance</span>
+                <span>Employee Performance</span>
             </a>
             <a href="analytics.php" class="nav-item">
                 <span class="icon">📊</span>
-                <span>Analytics</span>
+                <span>Waste Analytics</span>
             </a>
             <a href="inventory.php" class="nav-item">
                 <span class="icon">📦</span>
@@ -439,11 +446,11 @@ if ($selected_date === date('Y-m-d')) {
             </a>
             <a href="leave.php" class="nav-item">
                 <span class="icon">📅</span>
-                <span>Leave</span>
+                <span>Leave Management</span>
             </a>
             <a href="maintenance.php" class="nav-item">
                 <span class="icon">🔧</span>
-                <span>Maintenance</span>
+                <span>Maintenance & Issues</span>
             </a>
         </nav>
     </aside>
@@ -457,11 +464,78 @@ if ($selected_date === date('Y-m-d')) {
                 <a href="attendance_report.php" class="btn btn-secondary">
                     📊 View Reports
                 </a>
-                <a href="attendance_checkin.php" class="btn btn-primary">
-                    ✓ Check In/Out
+                <a href="attendance_manual.php" class="btn btn-secondary">
+                    ✏️ Manual Entry
                 </a>
+                <div style="position: relative;">
+                    <button onclick="showEmployeeSelector()" class="btn btn-primary" style="cursor: pointer;">
+                        ✓ Check In/Out (Select Employee)
+                    </button>
+                    <!-- Employee Selector Dropdown -->
+                    <div id="employeeSelector" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 10px; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); padding: 20px; min-width: 300px; z-index: 1000;">
+                        <h3 style="margin-bottom: 10px; color: #435334;">👤 Select Employee</h3>
+                        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                            Choose an employee to view their check-in/check-out page
+                        </p>
+                        <div style="margin-bottom: 15px;">
+                            <input type="text" id="employeeSearch" placeholder="Search employee..." 
+                                   style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;"
+                                   onkeyup="filterEmployees()">
+                        </div>
+                        <div id="employeeList" style="max-height: 300px; overflow-y: auto;">
+                            <?php foreach ($employees as $emp): ?>
+                                <a href="attendance_checkin.php?employee_id=<?php echo $emp['employee_id']; ?>" 
+                                   class="employee-item"
+                                   style="display: block; padding: 12px; margin-bottom: 5px; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: #435334; transition: all 0.2s;"
+                                   onmouseover="this.style.background='#CEDEBD'" 
+                                   onmouseout="this.style.background='#f8f9fa'">
+                                    <strong><?php echo htmlspecialchars($emp['full_name']); ?></strong>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                        <button onclick="hideEmployeeSelector()" 
+                                style="width: 100%; margin-top: 10px; padding: 10px; background: #f0f0f0; border: none; border-radius: 8px; cursor: pointer;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <script>
+            function showEmployeeSelector() {
+                document.getElementById('employeeSelector').style.display = 'block';
+                document.getElementById('employeeSearch').focus();
+            }
+
+            function hideEmployeeSelector() {
+                document.getElementById('employeeSelector').style.display = 'none';
+            }
+
+            function filterEmployees() {
+                const searchText = document.getElementById('employeeSearch').value.toLowerCase();
+                const items = document.querySelectorAll('.employee-item');
+                
+                items.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (text.includes(searchText)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                const selector = document.getElementById('employeeSelector');
+                const button = event.target.closest('.btn-primary');
+                
+                if (!selector.contains(event.target) && !button) {
+                    hideEmployeeSelector();
+                }
+            });
+        </script>
 
         <!-- Alert Messages -->
         <?php if ($success): ?>

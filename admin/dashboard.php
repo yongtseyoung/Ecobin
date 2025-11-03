@@ -6,6 +6,7 @@
 
 // Start session and check authentication
 session_start();
+date_default_timezone_set('Asia/Kuala_Lumpur'); // Malaysia timezone (MYT, UTC+8)
 require_once '../config/database.php';
 
 // Check if user is logged in and is admin
