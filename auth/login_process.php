@@ -106,7 +106,7 @@ try {
     if ($user['user_type'] === 'admin') {
         header("Location: ../admin/dashboard.php");
     } else {
-        header("Location: ../user/dashboard.php");
+        header("Location: ../user/employee_dashboard.php");
     }
     exit;
     

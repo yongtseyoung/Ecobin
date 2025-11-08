@@ -137,6 +137,25 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             font-size: 18px;
         }
 
+        /* Logout */
+        .logout-btn {
+            padding: 12px 15px;
+            margin: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
         /* Main Content */
         .main-content {
             margin-left: 250px;
@@ -456,6 +475,13 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
                 <span>Maintenance & Issues</span>
             </a>
         </nav>
+
+        <form action="../auth/logout.php" method="POST">
+            <button type="submit" class="logout-btn">
+                <span class="icon">🚪</span>
+                <span>Logout</span>
+            </button>
+        </form>
     </aside>
 
     <!-- Main Content -->

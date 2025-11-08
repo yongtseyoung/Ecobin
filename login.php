@@ -12,7 +12,7 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['user_type'])) {
     if ($_SESSION['user_type'] === 'admin') {
         header("Location: admin/dashboard.php");
     } else {
-        header("Location: user/dashboard.php");
+        header("Location: user/employee_dashboard.php");
     }
     exit;
 }
