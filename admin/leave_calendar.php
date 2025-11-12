@@ -83,14 +83,15 @@ foreach ($leave_requests as $leave) {
         }
 
         .sidebar-logo {
-            width: 90px;
-            height: 90px;
+            width: 120px;
+            height: 120px;
             background: #CEDEBD;
             border-radius: 50%;
             margin: 0 auto 30px;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
 
         .sidebar-logo img {
@@ -275,9 +276,41 @@ foreach ($leave_requests as $leave) {
                 <span class="icon">📊</span>
                 <span>Dashboard</span>
             </a>
-            <a href="leave.php" class="nav-item active">
-                <span class="icon">🏖️</span>
-                <span>Leave</span>
+            <a href="users.php" class="nav-item">
+                <span class="icon">👥</span>
+                <span>User Management</span>
+            </a>
+            <a href="bins.php" class="nav-item">
+                <span class="icon">🗑️</span>
+                <span>Bin Monitoring</span>
+            </a>
+            <a href="attendance.php" class="nav-item">
+                <span class="icon">✅</span>
+                <span>Attendance</span>
+            </a>
+            <a href="tasks.php" class="nav-item">
+                <span class="icon">📋</span>
+                <span>Tasks</span>
+            </a>
+            <a href="performance.php" class="nav-item">
+                <span class="icon">📈</span>
+                <span>Employee Performance</span>
+            </a>
+            <a href="analytics.php" class="nav-item">
+                <span class="icon">📊</span>
+                <span>Waste Analytics</span>
+            </a>
+            <a href="inventory.php" class="nav-item">
+                <span class="icon">📦</span>
+                <span>Inventory</span>
+            </a>
+            <a href="leave.php" class="nav-item">
+                <span class="icon">📅</span>
+                <span>Leave Management</span>
+            </a>
+            <a href="maintenance.php" class="nav-item">
+                <span class="icon">🔧</span>
+                <span>Maintenance & Issues</span>
             </a>
         </nav>
     </aside>

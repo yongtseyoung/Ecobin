@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 08, 2025 at 05:56 PM
+-- Generation Time: Nov 09, 2025 at 07:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -44,7 +44,7 @@ CREATE TABLE `admins` (
 --
 
 INSERT INTO `admins` (`admin_id`, `username`, `password`, `email`, `full_name`, `phone_number`, `created_at`, `last_login`, `status`) VALUES
-(2, 'admin', 'admin123', 'admin@ecobin.ums.edu.my', 'Leopold', '0123456789', '2025-10-24 02:15:30', '2025-11-08 08:43:43', 'active'),
+(2, 'admin', 'admin123', 'admin@ecobin.ums.edu.my', 'Leopold', '0123456789', '2025-10-24 02:15:30', '2025-11-09 18:28:22', 'active'),
 (3, 'Jordan', 'jordan123', 'Jordan@yahoo.com', 'Jordan Carter', '01110254968', '2025-10-26 17:32:45', '2025-10-26 17:35:35', 'active');
 
 -- --------------------------------------------------------
@@ -212,7 +212,6 @@ CREATE TABLE `employees` (
   `full_name` varchar(100) NOT NULL,
   `phone_number` varchar(20) DEFAULT NULL,
   `area_id` int(11) DEFAULT NULL,
-  `hire_date` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `last_login` timestamp NULL DEFAULT NULL,
   `status` enum('active','on_leave','inactive') DEFAULT 'active'
@@ -222,27 +221,9 @@ CREATE TABLE `employees` (
 -- Dumping data for table `employees`
 --
 
-INSERT INTO `employees` (`employee_id`, `username`, `password`, `email`, `full_name`, `phone_number`, `area_id`, `hire_date`, `created_at`, `last_login`, `status`) VALUES
-(4, 'Cyrileo', 'cleaner1234', 'cyrileo@yahoo.com', 'Cyril Leopold Yong', '01110547963', 1, '0000-00-00', '2025-10-25 14:35:00', '2025-11-08 09:12:06', 'active'),
-(5, 'Ken', 'Cleaner123', 'kencarson@yahoo.com', 'Ken Carson', '01110547963', 2, '0000-00-00', '2025-10-26 17:47:17', '2025-10-30 11:18:05', 'active');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `employee_areas`
---
-
-CREATE TABLE `employee_areas` (
-  `assignment_id` int(11) NOT NULL,
-  `employee_id` int(11) NOT NULL,
-  `area_id` int(11) NOT NULL,
-  `is_primary` tinyint(1) DEFAULT 1 COMMENT 'Is this a primary area for the employee?',
-  `assigned_date` date NOT NULL DEFAULT curdate(),
-  `status` enum('active','inactive') DEFAULT 'active',
-  `notes` text DEFAULT NULL COMMENT 'Any special notes about this assignment',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+INSERT INTO `employees` (`employee_id`, `username`, `password`, `email`, `full_name`, `phone_number`, `area_id`, `created_at`, `last_login`, `status`) VALUES
+(4, 'Cyrileo', 'cleaner1234', 'cyrileo@yahoo.com', 'Cyril Leopold Yong', '01110547963', 1, '2025-10-25 14:35:00', '2025-11-08 20:51:24', 'active'),
+(5, 'Ken', 'Cleaner123', 'kencarson@yahoo.com', 'Ken Carson', '01110547963', 2, '2025-10-26 17:47:17', '2025-10-30 11:18:05', 'active');
 
 -- --------------------------------------------------------
 
@@ -436,8 +417,7 @@ CREATE TABLE `notifications` (
   `related_type` enum('task','bin','leave','supply','maintenance','none') DEFAULT 'none',
   `related_id` int(11) DEFAULT NULL COMMENT 'ID of related entity',
   `is_read` tinyint(1) DEFAULT 0,
-  `sent_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `read_at` timestamp NULL DEFAULT NULL
+  `sent_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -560,21 +540,6 @@ INSERT INTO `tasks` (`task_id`, `created_by`, `area_id`, `assigned_to`, `task_ti
 -- --------------------------------------------------------
 
 --
--- Table structure for table `task_bins`
---
-
-CREATE TABLE `task_bins` (
-  `task_bin_id` int(11) NOT NULL,
-  `task_id` int(11) NOT NULL,
-  `bin_id` int(11) NOT NULL,
-  `collection_status` enum('pending','collected','skipped') DEFAULT 'pending',
-  `weight_collected` decimal(10,2) DEFAULT NULL COMMENT 'Weight in kilograms',
-  `notes` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `waste_analytics`
 --
 
@@ -688,15 +653,6 @@ ALTER TABLE `employees`
   ADD KEY `fk_employee_area` (`area_id`);
 
 --
--- Indexes for table `employee_areas`
---
-ALTER TABLE `employee_areas`
-  ADD PRIMARY KEY (`assignment_id`),
-  ADD UNIQUE KEY `unique_employee_area` (`employee_id`,`area_id`),
-  ADD KEY `idx_employee_areas` (`employee_id`,`status`),
-  ADD KEY `idx_area_employees` (`area_id`,`status`);
-
---
 -- Indexes for table `inventory`
 --
 ALTER TABLE `inventory`
@@ -793,14 +749,6 @@ ALTER TABLE `tasks`
   ADD KEY `idx_tasks_area` (`area_id`,`status`);
 
 --
--- Indexes for table `task_bins`
---
-ALTER TABLE `task_bins`
-  ADD PRIMARY KEY (`task_bin_id`),
-  ADD UNIQUE KEY `unique_task_bin` (`task_id`,`bin_id`),
-  ADD KEY `bin_id` (`bin_id`);
-
---
 -- Indexes for table `waste_analytics`
 --
 ALTER TABLE `waste_analytics`
@@ -860,12 +808,6 @@ ALTER TABLE `collection_reports`
 --
 ALTER TABLE `employees`
   MODIFY `employee_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT for table `employee_areas`
---
-ALTER TABLE `employee_areas`
-  MODIFY `assignment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `inventory`
@@ -934,12 +876,6 @@ ALTER TABLE `tasks`
   MODIFY `task_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `task_bins`
---
-ALTER TABLE `task_bins`
-  MODIFY `task_bin_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `waste_analytics`
 --
 ALTER TABLE `waste_analytics`
@@ -992,13 +928,6 @@ ALTER TABLE `collection_reports`
 --
 ALTER TABLE `employees`
   ADD CONSTRAINT `fk_employee_area` FOREIGN KEY (`area_id`) REFERENCES `areas` (`area_id`) ON DELETE SET NULL;
-
---
--- Constraints for table `employee_areas`
---
-ALTER TABLE `employee_areas`
-  ADD CONSTRAINT `employee_areas_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `employee_areas_ibfk_2` FOREIGN KEY (`area_id`) REFERENCES `areas` (`area_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `leave_balances`
@@ -1055,13 +984,6 @@ ALTER TABLE `tasks`
   ADD CONSTRAINT `tasks_ibfk_2` FOREIGN KEY (`area_id`) REFERENCES `areas` (`area_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `tasks_ibfk_3` FOREIGN KEY (`assigned_to`) REFERENCES `employees` (`employee_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `tasks_ibfk_4` FOREIGN KEY (`triggered_by_bin`) REFERENCES `bins` (`bin_id`) ON DELETE SET NULL;
-
---
--- Constraints for table `task_bins`
---
-ALTER TABLE `task_bins`
-  ADD CONSTRAINT `task_bins_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`task_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `task_bins_ibfk_2` FOREIGN KEY (`bin_id`) REFERENCES `bins` (`bin_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `waste_analytics`

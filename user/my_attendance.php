@@ -361,7 +361,7 @@ $current_date = date('l, F j, Y');
                 </button>
             </form>
 
-            <a href="<?php echo $user_type === 'admin' ? 'attendance.php' : 'dashboard.php'; ?>" class="btn btn-back">
+            <a href="<?php echo $user_type === 'admin' ? 'attendance.php' : 'employee_dashboard.php'; ?>" class="btn btn-back">
                 ← Back
             </a>
         </div>

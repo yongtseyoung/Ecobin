@@ -54,19 +54,21 @@ unset($_SESSION['error']);
         }
 
         .sidebar-logo {
-            width: 90px;
-            height: 90px;
+            width: 120px;
+            height: 120px;
             background: #CEDEBD;
             border-radius: 50%;
             margin: 0 auto 30px;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
 
         .sidebar-logo img {
-            width: 70px;
-            height: 70px;
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
         }
 
         .nav-menu {

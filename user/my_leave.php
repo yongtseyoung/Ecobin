@@ -454,13 +454,17 @@ unset($_SESSION['success'], $_SESSION['error']);
                 <span class="icon">✅</span>
                 <span>Attendance</span>
             </a>
-            <a href="my_leave.php" class="nav-item active">
-                <span class="icon">🏖️</span>
-                <span>Leave</span>
-            </a>
             <a href="my_performance.php" class="nav-item">
                 <span class="icon">📈</span>
-                <span>Performance</span>
+                <span>My Performance</span>
+            </a>
+            <a href="my_schedule.php" class="nav-item">
+                <span class="icon">📅</span>
+                <span>Schedule</span>
+            </a>                        
+            <a href="my_leave.php" class="nav-item active">
+                <span class="icon">🏖️</span>
+                <span>Apply Leave</span>
             </a>
             <a href="my_profile.php" class="nav-item">
                 <span class="icon">👤</span>
