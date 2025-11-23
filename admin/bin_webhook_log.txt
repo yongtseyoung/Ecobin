@@ -36,3 +36,50 @@
 [2025-11-03 17:35:39] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":10,"battery_level":48,"status":"normal","task_created":false,"task_id":null,"battery_warning":false,"timestamp":"2025-11-03 17:35:39"}
 [2025-11-03 19:47:03] ERROR: No data received
 [2025-11-03 19:47:17] ERROR: No data received
+[2025-11-13 13:07:20] Received data: {"bin_id":"1","fill_level":95,"distance":5,"battery_percentage":80,"battery_voltage":6.72,"gps_latitude":5.9732,"gps_longitude":116.0732,"lid_status":"closed","last_opened":null,"timestamp":"2025-11-13 13:07:20"}
+[2025-11-13 13:07:20] Updated bin 1: fill_level=95%, battery=80%, status=full
+[2025-11-13 13:07:20] AUTO-CREATED TASK #6 for bin BIN-A1-F1 - Assigned to Cyril Leopold Yong (Priority: urgent)
+[2025-11-13 13:07:20] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":95,"battery_level":80,"status":"full","task_created":true,"task_id":"6","battery_warning":false,"timestamp":"2025-11-13 13:07:20"}
+[2025-11-23 15:37:02] Received data: {"bin_id":"1","fill_level":95,"distance":5,"battery_percentage":80,"battery_voltage":6.72,"gps_latitude":5.9796000000000005,"gps_longitude":116.06689999999999,"lid_status":"closed","last_opened":null,"timestamp":"2025-11-23 15:37:02"}
+[2025-11-23 15:37:02] Updated bin 1: fill_level=95%, battery=80%, status=full
+[2025-11-23 15:37:02] Task scheduling: created at 15:37, priority=urgent, fill=95%, scheduled_date=2025-11-23
+[2025-11-23 15:37:02] AUTO-CREATED TASK #7 for bin BIN-A1-F1 - Assigned to Cyril Leopold Yong (Priority: urgent, Scheduled: 2025-11-23)
+[2025-11-23 15:37:02] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":95,"battery_level":80,"status":"full","task_created":true,"task_id":"7","battery_warning":false,"timestamp":"2025-11-23 15:37:02"}
+[2025-11-23 16:51:10] Received data: {"bin_id":"1","fill_level":85,"distance":15,"battery_percentage":80,"battery_voltage":6.72,"gps_latitude":5.9811000000000005,"gps_longitude":116.0713,"lid_status":"closed","last_opened":null,"timestamp":"2025-11-23 16:51:10"}
+[2025-11-23 16:51:10] Updated bin 1: fill_level=85%, battery=80%, status=full
+[2025-11-23 16:51:10] Task scheduling: created at 16:51, priority=high, fill=85%, scheduled_date=2025-11-23
+[2025-11-23 16:51:10] AUTO-CREATED TASK #8 for bin BIN-A1-F1 - Assigned to Cyril Leopold Yong (Priority: high, Scheduled: 2025-11-23)
+[2025-11-23 16:51:10] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":85,"battery_level":80,"status":"full","task_created":true,"task_id":"8","battery_warning":false,"timestamp":"2025-11-23 16:51:10"}
+[2025-11-23 16:51:24] Received data: {"bin_id":"1","fill_level":50,"distance":50,"battery_percentage":80,"battery_voltage":6.72,"gps_latitude":5.978000000000001,"gps_longitude":116.0731,"lid_status":"closed","last_opened":null,"timestamp":"2025-11-23 16:51:24"}
+[2025-11-23 16:51:24] Updated bin 1: fill_level=50%, battery=80%, status=normal
+[2025-11-23 16:51:24] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":50,"battery_level":80,"status":"normal","task_created":false,"task_id":null,"battery_warning":false,"timestamp":"2025-11-23 16:51:24"}
+[2025-11-23 16:51:32] Received data: {"bin_id":"1","fill_level":85,"distance":15,"battery_percentage":80,"battery_voltage":6.72,"gps_latitude":5.9786,"gps_longitude":116.06949999999999,"lid_status":"closed","last_opened":null,"timestamp":"2025-11-23 16:51:32"}
+[2025-11-23 16:51:32] Updated bin 1: fill_level=85%, battery=80%, status=full
+[2025-11-23 16:51:32] Task scheduling: created at 16:51, priority=high, fill=85%, scheduled_date=2025-11-23
+[2025-11-23 16:51:32] AUTO-CREATED TASK #9 for bin BIN-A1-F1 - Assigned to Cyril Leopold Yong (Priority: high, Scheduled: 2025-11-23)
+[2025-11-23 16:51:32] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":85,"battery_level":80,"status":"full","task_created":true,"task_id":"9","battery_warning":false,"timestamp":"2025-11-23 16:51:32"}
+[2025-11-23 16:51:40] Received data: {"bin_id":"1","fill_level":95,"distance":5,"battery_percentage":80,"battery_voltage":6.72,"gps_latitude":5.9777000000000005,"gps_longitude":116.0658,"lid_status":"closed","last_opened":null,"timestamp":"2025-11-23 16:51:40"}
+[2025-11-23 16:51:40] Updated bin 1: fill_level=95%, battery=80%, status=full
+[2025-11-23 16:51:40] Task scheduling: created at 16:51, priority=urgent, fill=95%, scheduled_date=2025-11-23
+[2025-11-23 16:51:40] AUTO-CREATED TASK #10 for bin BIN-A1-F1 - Assigned to Cyril Leopold Yong (Priority: urgent, Scheduled: 2025-11-23)
+[2025-11-23 16:51:40] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":95,"battery_level":80,"status":"full","task_created":true,"task_id":"10","battery_warning":false,"timestamp":"2025-11-23 16:51:40"}
+[2025-11-23 16:52:33] Received data: {"bin_id":"1","fill_level":95,"distance":5,"battery_percentage":43,"battery_voltage":3.61,"gps_latitude":5.9855,"gps_longitude":116.08059999999999,"lid_status":"closed","last_opened":null,"timestamp":"2025-11-23 16:52:32"}
+[2025-11-23 16:52:33] Updated bin 1: fill_level=95%, battery=43%, status=full
+[2025-11-23 16:52:33] Task scheduling: created at 16:52, priority=urgent, fill=95%, scheduled_date=2025-11-23
+[2025-11-23 16:52:33] AUTO-CREATED TASK #11 for bin BIN-A1-F1 - Assigned to Cyril Leopold Yong (Priority: urgent, Scheduled: 2025-11-23)
+[2025-11-23 16:52:33] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":95,"battery_level":43,"status":"full","task_created":true,"task_id":"11","battery_warning":false,"timestamp":"2025-11-23 16:52:33"}
+[2025-11-23 16:52:43] Received data: {"bin_id":"1","fill_level":95,"distance":5,"battery_percentage":80,"battery_voltage":6.72,"gps_latitude":5.9853000000000005,"gps_longitude":116.0728,"lid_status":"closed","last_opened":null,"timestamp":"2025-11-23 16:52:43"}
+[2025-11-23 16:52:43] Updated bin 1: fill_level=95%, battery=80%, status=full
+[2025-11-23 16:52:43] Task scheduling: created at 16:52, priority=urgent, fill=95%, scheduled_date=2025-11-23
+[2025-11-23 16:52:43] AUTO-CREATED TASK #12 for bin BIN-A1-F1 - Assigned to Cyril Leopold Yong (Priority: urgent, Scheduled: 2025-11-23)
+[2025-11-23 16:52:43] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":95,"battery_level":80,"status":"full","task_created":true,"task_id":"12","battery_warning":false,"timestamp":"2025-11-23 16:52:43"}
+[2025-11-23 16:52:50] Received data: {"bin_id":"1","fill_level":95,"distance":5,"battery_percentage":80,"battery_voltage":6.72,"gps_latitude":5.971,"gps_longitude":116.07419999999999,"lid_status":"closed","last_opened":null,"timestamp":"2025-11-23 16:52:50"}
+[2025-11-23 16:52:50] Updated bin 1: fill_level=95%, battery=80%, status=full
+[2025-11-23 16:52:50] Task scheduling: created at 16:52, priority=urgent, fill=95%, scheduled_date=2025-11-23
+[2025-11-23 16:52:50] AUTO-CREATED TASK #13 for bin BIN-A1-F1 - Assigned to Cyril Leopold Yong (Priority: urgent, Scheduled: 2025-11-23)
+[2025-11-23 16:52:50] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":95,"battery_level":80,"status":"full","task_created":true,"task_id":"13","battery_warning":false,"timestamp":"2025-11-23 16:52:50"}
+[2025-11-23 18:40:02] Received data: {"bin_id":"1","fill_level":95,"distance":5,"battery_percentage":80,"battery_voltage":6.72,"gps_latitude":5.9821,"gps_longitude":116.0705,"lid_status":"closed","last_opened":null,"timestamp":"2025-11-23 18:40:02"}
+[2025-11-23 18:40:02] Updated bin 1: fill_level=95%, battery=80%, status=full
+[2025-11-23 18:40:02] Task scheduling: created at 18:40, priority=urgent, fill=95%, scheduled_date=2025-11-23
+[2025-11-23 18:40:02] AUTO-CREATED TASK #14 for bin BIN-A1-F1 - Assigned to Cyril Leopold Yong (Priority: urgent, Scheduled: 2025-11-23)
+[2025-11-23 18:40:02] Response: {"success":true,"message":"Data received and processed successfully","bin_id":1,"bin_code":"BIN-A1-F1","fill_level":95,"battery_level":80,"status":"full","task_created":true,"task_id":"14","battery_warning":false,"timestamp":"2025-11-23 18:40:02"}

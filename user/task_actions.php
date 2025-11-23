@@ -2,6 +2,8 @@
 /**
  * Task Actions Handler
  * Backend processing for all task operations
+ * MODIFIED: Sets started_at = NOW() when completing tasks directly
+ * FIXED: Auto-creates collection reports when completing collection tasks
  */
 
 session_start();
@@ -154,6 +156,30 @@ elseif ($action === 'update' && $user_type === 'admin') {
                    last_collection = NOW()
                    WHERE bin_id = ?", 
                    [$existing_task['triggered_by_bin']]);
+            
+            // NEW: Auto-create collection report if it doesn't exist
+            if ($existing_task['task_type'] === 'collection') {
+                $existing_report = getOne(
+                    "SELECT report_id FROM collection_reports WHERE task_id = ?", 
+                    [$task_id]
+                );
+                
+                if (!$existing_report) {
+                    query("INSERT INTO collection_reports (
+                              task_id, bin_id, area_id, employee_id,
+                              collection_date, collection_start, collection_end,
+                              waste_condition, report_notes,
+                              is_auto_generated, submitted_at
+                           ) VALUES (?, ?, ?, ?, CURDATE(), NOW(), NOW(), 'normal', ?, 1, NOW())",
+                           [
+                               $task_id,
+                               $existing_task['triggered_by_bin'],
+                               $existing_task['area_id'],
+                               $assigned_to,
+                               'Auto-generated collection report (admin completed)'
+                           ]);
+                }
+            }
         }
 
         $_SESSION['success'] = "Task updated successfully!";
@@ -251,6 +277,8 @@ elseif ($action === 'employee_start' && $user_type === 'employee') {
     }
 }
 
+// Employee Complete Task - MODIFIED to set started_at = NOW() when completing
+// FIXED: Now auto-creates collection reports for collection tasks
 elseif ($action === 'employee_complete' && $user_type === 'employee') {
     try {
         $task_id = $_POST['task_id'] ?? 0;
@@ -266,13 +294,54 @@ elseif ($action === 'employee_complete' && $user_type === 'employee') {
             throw new Exception("This task is already completed");
         }
 
-        // Update task status
+        if ($task['status'] === 'cancelled') {
+            throw new Exception("Cannot complete a cancelled task");
+        }
+
+        // IMPORTANT: Set both started_at and completed_at to NOW()
+        // This allows fair performance tracking using:
+        // - On-Time Rate: completed_at vs scheduled_date (primary metric)
+        // - Response Time: completed_at - created_at (secondary metric for same-day tasks)
         query("UPDATE tasks SET 
                status = 'completed', 
+               started_at = NOW(),
                completed_at = NOW(),
                completion_notes = ?
                WHERE task_id = ?", 
                [$completion_notes ?: null, $task_id]);
+
+        // **NEW: Auto-create collection report for collection tasks**
+        if ($task['task_type'] === 'collection' && $task['triggered_by_bin']) {
+            // Check if collection report already exists for this task
+            $existing_report = getOne(
+                "SELECT report_id FROM collection_reports WHERE task_id = ?", 
+                [$task_id]
+            );
+            
+            if (!$existing_report) {
+                // Create collection report automatically
+                query("INSERT INTO collection_reports (
+                          task_id, 
+                          bin_id, 
+                          area_id, 
+                          employee_id,
+                          collection_date, 
+                          collection_start, 
+                          collection_end,
+                          waste_condition,
+                          report_notes,
+                          is_auto_generated,
+                          submitted_at
+                       ) VALUES (?, ?, ?, ?, CURDATE(), NOW(), NOW(), 'normal', ?, 1, NOW())",
+                       [
+                           $task_id,
+                           $task['triggered_by_bin'],
+                           $task['area_id'],
+                           $user_id,
+                           $completion_notes ?: 'Auto-generated collection report'
+                       ]);
+            }
+        }
 
         // If task has a bin, update bin status and set last_collection
         if ($task['triggered_by_bin']) {
@@ -306,8 +375,8 @@ elseif ($action === 'delete' && $user_type === 'admin') {
             throw new Exception("Task not found");
         }
 
-        // Delete related task_bins entries first (foreign key)
-        query("DELETE FROM task_bins WHERE task_id = ?", [$task_id]);
+        // Delete related collection reports first (foreign key)
+        query("DELETE FROM collection_reports WHERE task_id = ?", [$task_id]);
 
         // Delete the task
         query("DELETE FROM tasks WHERE task_id = ?", [$task_id]);

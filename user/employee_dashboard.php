@@ -501,8 +501,8 @@ unset($_SESSION['success'], $_SESSION['error']);
                 <span>My Performance</span>
             </a>
             <a href="my_schedule.php" class="nav-item">
-                <span class="icon">📅</span>
-                <span>Schedule</span>
+                <span class="icon">📦</span>
+                <span>Inventory</span>
             </a>
             <a href="my_leave.php" class="nav-item">
                 <span class="icon">🏖️</span>

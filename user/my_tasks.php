@@ -98,6 +98,27 @@ unset($_SESSION['success'], $_SESSION['error']);
             font-size: 15px;
         }
 
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            color: #435334;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
         .stats-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -242,9 +263,7 @@ unset($_SESSION['success'], $_SESSION['error']);
         }
 
         .task-details strong {
-            color: #435334;
-            display: inline-block;
-            min-width: 80px;
+            color: #333;
         }
 
         .task-actions {
@@ -254,54 +273,50 @@ unset($_SESSION['success'], $_SESSION['error']);
 
         .btn {
             flex: 1;
-            padding: 12px 20px;
+            padding: 14px 24px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            text-align: center;
             transition: all 0.3s;
             text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-start {
-            background: #3498db;
-            color: white;
-        }
-
-        .btn-start:hover {
-            background: #2980b9;
+            text-align: center;
         }
 
         .btn-complete {
-            background: #27ae60;
+            background: #28a745;
             color: white;
         }
 
         .btn-complete:hover {
-            background: #229954;
-        }
-
-        .btn-view {
-            background: #CEDEBD;
-            color: #435334;
-        }
-
-        .btn-view:hover {
-            background: #b8ceaa;
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
         }
 
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #999;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         .empty-state .icon {
             font-size: 64px;
             margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #435334;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #999;
+            font-size: 15px;
         }
 
         .complete-modal {
@@ -312,9 +327,9 @@ unset($_SESSION['success'], $_SESSION['error']);
             right: 0;
             bottom: 0;
             background: rgba(0,0,0,0.5);
+            z-index: 1000;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
             padding: 20px;
         }
 
@@ -378,6 +393,10 @@ unset($_SESSION['success'], $_SESSION['error']);
     </style>
 </head>
 <body>
+    <a href="employee_dashboard.php" class="back-button">
+        ← Back to Dashboard
+    </a>
+
     <div class="header">
         <h1>📋 My Tasks</h1>
         <p>Hello, <?php echo htmlspecialchars($employee_name); ?>!</p>
@@ -500,17 +519,9 @@ unset($_SESSION['success'], $_SESSION['error']);
                 </div>
 
                 <div class="task-actions">
-                    <?php if ($task['status'] === 'pending'): ?>
-                        <form method="POST" action="task_actions.php" style="flex: 1;">
-                            <input type="hidden" name="action" value="employee_start">
-                            <input type="hidden" name="task_id" value="<?php echo $task['task_id']; ?>">
-                            <button type="submit" class="btn btn-start" style="width: 100%;">
-                                ▶️ Start Task
-                            </button>
-                        </form>
-                    <?php elseif ($task['status'] === 'in_progress'): ?>
+                    <?php if ($task['status'] === 'pending' || $task['status'] === 'in_progress'): ?>
                         <button onclick="openCompleteModal(<?php echo $task['task_id']; ?>)" class="btn btn-complete">
-                            ✓ Mark Complete
+                            ✓ Complete Task
                         </button>
                     <?php endif; ?>
                 </div>

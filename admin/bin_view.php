@@ -19,7 +19,7 @@ $bin_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 if (!$bin_id) {
     $_SESSION['error'] = "Invalid bin ID";
-    header("Location: bins_dashboard.php");
+    header("Location: bins.php");
     exit;
 }
 
@@ -32,7 +32,7 @@ $bin = getOne("SELECT b.*, a.area_name, a.block
 
 if (!$bin) {
     $_SESSION['error'] = "Bin not found";
-    header("Location: bins_dashboard.php");
+    header("Location: bins.php");
     exit;
 }
 
@@ -433,7 +433,7 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
                 <span class="icon">👥</span>
                 <span>User Management</span>
             </a>
-            <a href="bins_dashboard.php" class="nav-item active">
+            <a href="bins.php" class="nav-item active">
                 <span class="icon">🗑️</span>
                 <span>Bin Monitoring</span>
             </a>
@@ -632,7 +632,6 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
 
         <div class="action-buttons">
             <a href="bins.php" class="btn btn-secondary">← Back to Bins</a>
-            <a href="bin_simulator.php" class="btn btn-primary">🧪 Test Simulator</a>
         </div>
     </main>
 </body>

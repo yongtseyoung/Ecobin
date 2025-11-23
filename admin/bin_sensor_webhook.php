@@ -2,6 +2,7 @@
 /**
  * Bin Sensor Webhook
  * Receives data from ESP32 IoT bins and auto-creates collection tasks
+ * MODIFIED: Includes smart scheduled_date based on time of day
  */
 
 date_default_timezone_set('Asia/Kuala_Lumpur');
@@ -15,6 +16,55 @@ function log_message($message) {
     $log_file = __DIR__ . '/bin_webhook_log.txt';
     $timestamp = date('Y-m-d H:i:s');
     file_put_contents($log_file, "[$timestamp] $message\n", FILE_APPEND);
+}
+
+/**
+ * Calculate fair scheduled_date based on creation time and priority
+ * This ensures employees aren't penalized for overnight tasks
+ */
+function calculate_scheduled_date($priority, $fill_level) {
+    $current_hour = intval(date('H')); // 0-23
+    $current_date = date('Y-m-d');
+    
+    // Define work hours: 7 AM - 5 PM
+    $work_start = 7;
+    $work_end = 17;
+    
+    // Check if within work hours
+    $during_work_hours = ($current_hour >= $work_start && $current_hour < $work_end);
+    
+    // URGENT PRIORITY (95%+ full)
+    if ($priority === 'urgent' || $fill_level >= 95) {
+        if ($during_work_hours) {
+            // Urgent during work hours = same day
+            return $current_date;
+        } else {
+            // Urgent overnight = next working day (same day, employee handles in morning)
+            return $current_date;
+        }
+    }
+    
+    // HIGH PRIORITY (80-94% full)
+    elseif ($priority === 'high' || $fill_level >= 80) {
+        if ($during_work_hours) {
+            // High priority during work hours = same day
+            return $current_date;
+        } else {
+            // High priority overnight = same day (handle in morning)
+            return $current_date;
+        }
+    }
+    
+    // MEDIUM/LOW PRIORITY
+    else {
+        if ($during_work_hours) {
+            // Medium during work hours = same day or next day
+            return date('Y-m-d', strtotime('+1 day'));
+        } else {
+            // Medium overnight = next day
+            return date('Y-m-d', strtotime('+1 day'));
+        }
+    }
 }
 
 try {
@@ -148,13 +198,20 @@ try {
                     $task_title = "Collect Bin {$bin['bin_code']} ({$fill_level}% full)";
                 }
 
-                // Create auto-generated task
+                // SMART SCHEDULING: Calculate fair scheduled_date based on time and priority
+                $scheduled_date = calculate_scheduled_date($priority, $fill_level);
+                $current_hour = intval(date('H'));
+                
+                // Log scheduling decision for transparency
+                log_message("Task scheduling: created at " . date('H:i') . ", priority=$priority, fill=$fill_level%, scheduled_date=$scheduled_date");
+
+                // Create auto-generated task with smart scheduled_date
                 $sql = "INSERT INTO tasks (
                             task_title, task_type, priority, status,
                             assigned_to, area_id, triggered_by_bin,
                             scheduled_date, description,
                             is_auto_generated, created_by, created_at
-                        ) VALUES (?, 'collection', ?, 'pending', ?, ?, ?, CURDATE(), ?, 1, ?, NOW())";
+                        ) VALUES (?, 'collection', ?, 'pending', ?, ?, ?, ?, ?, 1, ?, NOW())";
 
                 $description = "Auto-generated collection task triggered by IoT sensor.\n" .
                               "Location: {$bin['location_details']}\n" .
@@ -172,6 +229,7 @@ try {
                         $employee['employee_id'],
                         $bin['area_id'],
                         $bin_id,
+                        $scheduled_date,  // Smart scheduled date
                         $description,
                         $created_by_admin
                     ]);
@@ -179,7 +237,7 @@ try {
                     $task_id = lastInsertId();
                     $task_created = true;
 
-                    log_message("AUTO-CREATED TASK #$task_id for bin {$bin['bin_code']} - Assigned to {$employee['full_name']} (Priority: $priority)");
+                    log_message("AUTO-CREATED TASK #$task_id for bin {$bin['bin_code']} - Assigned to {$employee['full_name']} (Priority: $priority, Scheduled: $scheduled_date)");
                 } catch (Exception $e) {
                     log_message("ERROR creating task: " . $e->getMessage());
                     throw $e;
