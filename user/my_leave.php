@@ -18,6 +18,9 @@ $employee_id = $_SESSION['user_id'];
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
 $current_year = date('Y');
 
+// Set current page for sidebar
+$current_page = 'leave';
+
 // Get filter
 $status_filter = $_GET['status'] ?? 'all';
 
@@ -76,65 +79,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             background: #FAF1E4;
             display: flex;
             min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: #435334;
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-logo {
-            width: 120px;
-            height: 120px;
-            background: #CEDEBD;
-            border-radius: 50%;
-            margin: 0 auto 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .sidebar-logo img {
-            width: 90px;
-            height: 90px;
-            object-fit: contain;
-        }
-
-        .nav-menu {
-            padding: 0 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 10px;
-            text-decoration: none;
-            color: white;
-            font-size: 13px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: white;
-            color: #435334;
-            font-weight: 600;
-        }
-
-        .nav-item .icon {
-            margin-right: 12px;
-            font-size: 18px;
         }
 
         .main-content {
@@ -212,6 +156,11 @@ unset($_SESSION['success'], $_SESSION['error']);
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-card .value {
@@ -433,45 +382,38 @@ unset($_SESSION['success'], $_SESSION['error']);
         .review-notes strong {
             color: #1976d2;
         }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <img src="../assets/images/logo.png" alt="EcoBin Logo">
-        </div>
-
-        <nav class="nav-menu">
-            <a href="employee_dashboard.php" class="nav-item">
-                <span class="icon">🏠</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="my_tasks.php" class="nav-item">
-                <span class="icon">📋</span>
-                <span>My Tasks</span>
-            </a>
-            <a href="my_attendance.php" class="nav-item">
-                <span class="icon">✅</span>
-                <span>Attendance</span>
-            </a>
-            <a href="my_performance.php" class="nav-item">
-                <span class="icon">📈</span>
-                <span>My Performance</span>
-            </a>
-            <a href="my_schedule.php" class="nav-item">
-                <span class="icon">📅</span>
-                <span>Schedule</span>
-            </a>                        
-            <a href="my_leave.php" class="nav-item active">
-                <span class="icon">🏖️</span>
-                <span>Apply Leave</span>
-            </a>
-            <a href="my_profile.php" class="nav-item">
-                <span class="icon">👤</span>
-                <span>Profile</span>
-            </a>
-        </nav>
-    </aside>
+    <?php include '../includes/sidebar.php'; ?>
 
     <main class="main-content">
         <div class="page-header">

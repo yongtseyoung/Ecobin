@@ -13,6 +13,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     exit;
 }
 
+// Set current page for sidebar
+$current_page = 'users';
+
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
 // Get active tab (default: employees)
@@ -56,6 +59,10 @@ $total_admins = count($admins);
 $total_employees = count($employees);
 $active_admins = count(array_filter($admins, fn($a) => $a['status'] === 'active'));
 $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'active'));
+
+// Get current date info
+$current_time = date('g:i A');
+$current_date = date('l, F j, Y');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,86 +84,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             min-height: 100vh;
         }
 
-        /* Sidebar */
-        .sidebar {
-            width: 250px;
-            background: #435334;
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-logo {
-            width: 120px;
-            height: 120px;
-            background: #CEDEBD;
-            border-radius: 50%;
-            margin: 0 auto 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sidebar-logo img {
-            width: 90px;
-            height: 90px;
-            object-fit: contain;
-        }
-
-        .nav-menu {
-            padding: 0 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: white;
-            font-size: 13px;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: white;
-            color: #435334;
-            font-weight: 600;
-        }
-
-        .nav-item .icon {
-            margin-right: 12px;
-            font-size: 18px;
-        }
-
-        /* Logout */
-        .logout-btn {
-            padding: 12px 15px;
-            margin: 10px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Main Content */
         .main-content {
             margin-left: 250px;
             flex: 1;
@@ -173,6 +100,20 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
         .page-header h1 {
             font-size: 32px;
             color: #435334;
+        }
+
+        .header-info {
+            text-align: right;
+        }
+
+        .header-time {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .header-date {
+            font-size: 12px;
+            color: #999;
         }
 
         .btn-primary {
@@ -228,21 +169,33 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
 
         .stat-card {
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-card h3 {
-            font-size: 14px;
+            font-size: 12px;
             color: #999;
             margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .stat-card .value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
             color: #435334;
+        }
+
+        .stat-card .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
         }
 
         /* Search Bar */
@@ -280,6 +233,25 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             color: #435334;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-bar button:hover {
+            background: #b8ceaa;
+        }
+
+        .btn-clear {
+            padding: 12px 24px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #666;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
         }
 
         /* Tabs */
@@ -300,6 +272,7 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             color: #666;
             text-decoration: none;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         .tab:hover {
@@ -315,7 +288,7 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
         .table-container {
             background: white;
             border-radius: 15px;
-            padding: 20px;
+            padding: 25px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             overflow-x: auto;
         }
@@ -331,7 +304,9 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             background: #f8f9fa;
             color: #435334;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             border-bottom: 2px solid #e0e0e0;
         }
 
@@ -345,11 +320,16 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             background: #fafafa;
         }
 
+        tr:last-child td {
+            border-bottom: none;
+        }
+
         .status-badge {
             padding: 6px 12px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
+            text-transform: uppercase;
         }
 
         .status-active {
@@ -377,6 +357,9 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             cursor: pointer;
             text-decoration: none;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .btn-edit {
@@ -408,90 +391,75 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             margin-bottom: 20px;
         }
 
+        .empty-state h3 {
+            color: #435334;
+            margin-bottom: 10px;
+        }
+
         /* Responsive */
-        @media (max-width: 968px) {
-            .sidebar {
-                width: 70px;
-            }
-            .main-content {
-                margin-left: 70px;
-            }
+        @media (max-width: 1200px) {
             .stats-row {
                 grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            .search-bar form {
+                flex-direction: column;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 10px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <?php if (file_exists('../assets/images/logo.png')): ?>
-                <img src="../assets/images/logo.png" alt="EcoBin">
-            <?php else: ?>
-                <span style="font-size: 40px;">🗑️</span>
-            <?php endif; ?>
-        </div>
-
-        <nav class="nav-menu">
-            <a href="dashboard.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="users.php" class="nav-item active">
-                <span class="icon">👥</span>
-                <span>User Management</span>
-            </a>
-            <a href="bins.php" class="nav-item">
-                <span class="icon">🗑️</span>
-                <span>Bin Monitoring</span>
-            </a>
-            <a href="attendance.php" class="nav-item">
-                <span class="icon">✅</span>
-                <span>Attendance</span>
-            </a>
-            <a href="tasks.php" class="nav-item">
-                <span class="icon">📋</span>
-                <span>Tasks</span>
-            </a>
-            <a href="performance.php" class="nav-item">
-                <span class="icon">📈</span>
-                <span>Employee Performance</span>
-            </a>
-            <a href="analytics.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Waste Analytics</span>
-            </a>
-            <a href="inventory.php" class="nav-item">
-                <span class="icon">📦</span>
-                <span>Inventory</span>
-            </a>
-            <a href="leave.php" class="nav-item">
-                <span class="icon">📅</span>
-                <span>Leave Management</span>
-            </a>
-            <a href="maintenance.php" class="nav-item">
-                <span class="icon">🔧</span>
-                <span>Maintenance & Issues</span>
-            </a>
-        </nav>
-
-        <form action="../auth/logout.php" method="POST">
-            <button type="submit" class="logout-btn">
-                <span class="icon">🚪</span>
-                <span>Logout</span>
-            </button>
-        </form>
-    </aside>
+    <?php include '../includes/admin_sidebar.php'; ?>
 
     <!-- Main Content -->
     <main class="main-content">
         <!-- Page Header -->
         <div class="page-header">
-            <h1>👥 User Account Management</h1>
-            <a href="user_add.php" class="btn-primary">
-                <span>➕</span> Add New User
-            </a>
+            <div>
+                <h1>👥 User Account Management</h1>
+            </div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div class="header-info">
+                    <div class="header-time"><?php echo $current_time; ?></div>
+                    <div class="header-date"><?php echo $current_date; ?></div>
+                </div>
+                <a href="user_add.php" class="btn-primary">
+                    <span>➕</span> Add New User
+                </a>
+            </div>
         </div>
 
         <!-- Alert Messages -->
@@ -512,18 +480,22 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
         <!-- Stats Cards -->
         <div class="stats-row">
             <div class="stat-card">
+                <div class="icon">👤</div>
                 <h3>Total Admins</h3>
                 <div class="value"><?php echo $total_admins; ?></div>
             </div>
             <div class="stat-card">
+                <div class="icon">✅</div>
                 <h3>Active Admins</h3>
                 <div class="value"><?php echo $active_admins; ?></div>
             </div>
             <div class="stat-card">
+                <div class="icon">👷</div>
                 <h3>Total Employees</h3>
                 <div class="value"><?php echo $total_employees; ?></div>
             </div>
             <div class="stat-card">
+                <div class="icon">✅</div>
                 <h3>Active Employees</h3>
                 <div class="value"><?php echo $active_employees; ?></div>
             </div>
@@ -541,7 +513,7 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
                 >
                 <button type="submit">Search</button>
                 <?php if ($search): ?>
-                    <a href="?tab=<?php echo $active_tab; ?>" style="padding: 12px 24px; background: #f0f0f0; border-radius: 10px; text-decoration: none; color: #666;">Clear</a>
+                    <a href="?tab=<?php echo $active_tab; ?>" class="btn-clear">Clear</a>
                 <?php endif; ?>
             </form>
         </div>
@@ -550,11 +522,11 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
         <div class="tabs">
             <a href="?tab=employees&search=<?php echo urlencode($search); ?>" 
                class="tab <?php echo $active_tab === 'employees' ? 'active' : ''; ?>">
-                Employees (<?php echo $total_employees; ?>)
+                👷 Employees (<?php echo $total_employees; ?>)
             </a>
             <a href="?tab=admins&search=<?php echo urlencode($search); ?>" 
                class="tab <?php echo $active_tab === 'admins' ? 'active' : ''; ?>">
-                Admins (<?php echo $total_admins; ?>)
+                👤 Admins (<?php echo $total_admins; ?>)
             </a>
         </div>
 

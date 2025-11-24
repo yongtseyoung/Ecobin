@@ -14,8 +14,20 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     exit;
 }
 
+$employee_id = $_SESSION['user_id'];
+$employee_name = $_SESSION['full_name'] ?? 'Employee';
+
+// Set current page for sidebar
+$current_page = 'performance';
+
 $user_id = $_SESSION['user_id'];
-$employee = getOne("SELECT * FROM employees WHERE employee_id = ?", [$user_id]);
+$employee = getOne("
+    SELECT e.*, a.area_name
+    FROM employees e
+    LEFT JOIN areas a ON e.area_id = a.area_id
+    WHERE e.employee_id = ?
+", [$user_id]);
+
 
 // Get selected period (default: current_month)
 $period_type = $_GET['period'] ?? 'current_month';
@@ -49,15 +61,7 @@ function getPeriodDisplayName($period_type, $start, $end) {
 
 $period_display = getPeriodDisplayName($period_type, $metrics['period_start'], $metrics['period_end']);
 
-// Grade colors matching EcoBin theme
-$grade_colors = [
-    'excellent' => '#27ae60',
-    'good' => '#9db89a',
-    'average' => '#f39c12',
-    'needs_improvement' => '#e67e22',
-    'poor' => '#e74c3c'
-];
-
+// Grade configuration
 $grade_config = [
     'excellent' => ['color' => '#27ae60', 'label' => 'Excellent', 'icon' => '🏆'],
     'good' => ['color' => '#9db89a', 'label' => 'Good', 'icon' => '👍'],
@@ -95,121 +99,13 @@ $current_date = date('l, F j, Y');
             min-height: 100vh;
         }
 
-        /* ============================================
-           SIDEBAR NAVIGATION
-           ============================================ */
-        .sidebar {
-            width: 250px;
-            background: #435334;
-            color: white;
-            padding: 20px 0;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
-        }
-
-        .sidebar-logo {
-            width: 120px;
-            height: 120px;
-            background: #CEDEBD;
-            border-radius: 50%;
-            margin: 0 auto 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .sidebar-logo img {
-            width: 90px;
-            height: 90px;
-            object-fit: contain;
-        }
-
-        .user-profile {
-            text-align: center;
-            padding: 0 20px;
-            margin-bottom: 30px;
-        }
-
-        .user-name {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .user-role {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        .nav-menu {
-            flex: 1;
-            padding: 0 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: white;
-            font-size: 13px;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: white;
-            color: #435334;
-            font-weight: 600;
-        }
-
-        .nav-item .icon {
-            margin-right: 12px;
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-        }
-
-        .logout-btn {
-            padding: 12px 15px;
-            margin: 10px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* ============================================
-           MAIN CONTENT
-           ============================================ */
         .main-content {
             margin-left: 250px;
             flex: 1;
             padding: 30px;
         }
 
-        /* Header */
+        /* Page Header */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -344,9 +240,6 @@ $current_date = date('l, F j, Y');
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
-            font-weight: bold;
-            position: relative;
             background: conic-gradient(
                 <?php echo $current_grade['color']; ?> 0deg,
                 <?php echo $current_grade['color']; ?> <?php echo $metrics['performance_score'] * 3.6; ?>deg,
@@ -467,29 +360,30 @@ $current_date = date('l, F j, Y');
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             transition: transform 0.3s ease;
+            text-align: center;
         }
 
         .stat-card:hover {
             transform: translateY(-5px);
         }
 
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
         .stat-label {
             color: #999;
             font-size: 12px;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .stat-value {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             color: #435334;
-        }
-
-        .stat-icon {
-            font-size: 24px;
-            margin-bottom: 10px;
         }
 
         /* Chart Container */
@@ -555,13 +449,15 @@ $current_date = date('l, F j, Y');
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-            }
-            
             .main-content {
                 margin-left: 70px;
                 padding: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
 
             .stats-grid {
@@ -575,55 +471,7 @@ $current_date = date('l, F j, Y');
     </style>
 </head>
 <body>
-    <!-- Sidebar Navigation -->
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <img src="../assets/images/logo.png" alt="EcoBin" onerror="this.style.display='none'">
-        </div>
-
-        <div class="user-profile">
-            <div class="user-name"><?php echo htmlspecialchars($employee['full_name']); ?></div>
-            <div class="user-role">Employee</div>
-        </div>
-
-        <nav class="nav-menu">
-            <a href="employee_dashboard.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="my_tasks.php" class="nav-item">
-                <span class="icon">📋</span>
-                <span>My Tasks</span>
-            </a>
-            <a href="attendance_checkin.php" class="nav-item">
-                <span class="icon">📅</span>
-                <span>Attendance</span>
-            </a>
-            <a href="my_performance.php" class="nav-item active">
-                <span class="icon">📈</span>
-                <span>My Performance</span>
-            </a>
-            <a href="inventory_request.php" class="nav-item">
-                <span class="icon">📦</span>
-                <span>Inventory</span>
-            </a>
-            <a href="apply_leave.php" class="nav-item">
-                <span class="icon">🏖️</span>
-                <span>Apply Leave</span>
-            </a>
-            <a href="profile.php" class="nav-item">
-                <span class="icon">👤</span>
-                <span>Profile</span>
-            </a>
-        </nav>
-
-        <form method="POST" action="../logout.php" style="margin: 0;">
-            <button type="submit" class="logout-btn">
-                <span class="icon">🚪</span>
-                <span>Logout</span>
-            </button>
-        </form>
-    </div>
+    <?php include '../includes/sidebar.php'; ?>
 
     <!-- Main Content -->
     <div class="main-content">

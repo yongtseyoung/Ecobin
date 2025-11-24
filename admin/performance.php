@@ -14,6 +14,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     exit;
 }
 
+// Set current page for sidebar
+$current_page = 'employees';
+
 // Get all active employees
 $employees = getAll("SELECT * FROM employees WHERE status = 'active' ORDER BY full_name");
 
@@ -80,94 +83,6 @@ $current_date = date('l, F j, Y');
             background: #FAF1E4;
             display: flex;
             min-height: 100vh;
-        }
-
-        /* ============================================
-           SIDEBAR NAVIGATION
-           ============================================ */
-        .sidebar {
-            width: 250px;
-            background: #435334;
-            color: white;
-            padding: 20px 0;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
-        }
-
-        .sidebar-logo {
-            width: 120px;
-            height: 120px;
-            background: #CEDEBD;
-            border-radius: 50%;
-            margin: 0 auto 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .sidebar-logo img {
-            width: 90px;
-            height: 90px;
-            object-fit: contain;
-        }
-
-        .nav-menu {
-            flex: 1;
-            padding: 0 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: white;
-            font-size: 13px;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: white;
-            color: #435334;
-            font-weight: 600;
-        }
-
-        .nav-item .icon {
-            margin-right: 12px;
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-        }
-
-        .logout-btn {
-            padding: 12px 15px;
-            margin: 10px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
         }
 
         /* ============================================
@@ -463,10 +378,6 @@ $current_date = date('l, F j, Y');
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-            }
-            
             .main-content {
                 margin-left: 70px;
                 padding: 20px;
@@ -487,62 +398,7 @@ $current_date = date('l, F j, Y');
     </style>
 </head>
 <body>
-    <!-- Sidebar Navigation -->
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <img src="../assets/images/logo.png" alt="EcoBin" onerror="this.style.display='none'">
-        </div>
-
-         <nav class="nav-menu">
-            <a href="dashboard.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="users.php" class="nav-item">
-                <span class="icon">👥</span>
-                <span>User Management</span>
-            </a>
-            <a href="bins.php" class="nav-item">
-                <span class="icon">🗑️</span>
-                <span>Bin Monitoring</span>
-            </a>
-            <a href="attendance.php" class="nav-item">
-                <span class="icon">✅</span>
-                <span>Attendance</span>
-            </a>
-            <a href="tasks.php" class="nav-item">
-                <span class="icon">📋</span>
-                <span>Tasks</span>
-            </a>
-            <a href="performance.php" class="nav-item active">
-                <span class="icon">📈</span>
-                <span>Employee Performance</span>
-            </a>
-            <a href="analytics.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Waste Analytics</span>
-            </a>
-            <a href="inventory.php" class="nav-item">
-                <span class="icon">📦</span>
-                <span>Inventory</span>
-            </a>
-            <a href="leave.php" class="nav-item">
-                <span class="icon">📅</span>
-                <span>Leave Management</span>
-            </a>
-            <a href="maintenance.php" class="nav-item">
-                <span class="icon">🔧</span>
-                <span>Maintenance & Issues</span>
-            </a>
-        </nav>
-
-        <form method="POST" action="../logout.php" style="margin: 0;">
-            <button type="submit" class="logout-btn">
-                <span class="icon">🚪</span>
-                <span>Logout</span>
-            </button>
-        </form>
-    </div>
+    <?php include '../includes/admin_sidebar.php'; ?>
 
     <!-- Main Content -->
     <div class="main-content">

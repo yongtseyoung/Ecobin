@@ -26,8 +26,8 @@ function calculate_scheduled_date($priority, $fill_level) {
     $current_hour = intval(date('H')); // 0-23
     $current_date = date('Y-m-d');
     
-    // Define work hours: 7 AM - 5 PM
-    $work_start = 7;
+    // Define work hours: 8 AM - 5 PM
+    $work_start = 8;
     $work_end = 17;
     
     // Check if within work hours

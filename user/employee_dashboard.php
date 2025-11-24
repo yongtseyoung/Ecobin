@@ -14,6 +14,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     exit;
 }
 
+// Set current page for sidebar
+$current_page = 'dashboard';
+
 $employee_id = $_SESSION['user_id'];
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
 
@@ -107,34 +110,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             min-height: 100vh;
         }
 
-        .sidebar {
-            width: 250px;
-            background: #435334;
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-logo {
-            width: 120px;
-            height: 120px;
-            background: #CEDEBD;
-            border-radius: 50%;
-            margin: 0 auto 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .sidebar-logo img {
-            width: 90px;
-            height: 90px;
-            object-fit: contain;
-        }
-
         .user-profile {
             text-align: center;
             padding: 0 20px 20px;
@@ -150,37 +125,6 @@ unset($_SESSION['success'], $_SESSION['error']);
         .user-profile p {
             font-size: 12px;
             opacity: 0.8;
-        }
-
-        .nav-menu {
-            padding: 0 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 10px;
-            text-decoration: none;
-            color: white;
-            font-size: 13px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: white;
-            color: #435334;
-            font-weight: 600;
-        }
-
-        .nav-item .icon {
-            margin-right: 12px;
-            font-size: 18px;
         }
 
         .main-content {
@@ -448,15 +392,6 @@ unset($_SESSION['success'], $_SESSION['error']);
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-            }
-
-            .sidebar-logo {
-                width: 50px;
-                height: 50px;
-            }
-
             .user-profile,
             .nav-item span:not(.icon) {
                 display: none;
@@ -473,52 +408,7 @@ unset($_SESSION['success'], $_SESSION['error']);
     </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <img src="../assets/images/logo.png" alt="EcoBin Logo">
-        </div>
-
-        <div class="user-profile">
-            <h3><?php echo htmlspecialchars($employee_name); ?></h3>
-            <p><?php echo htmlspecialchars($employee['area_name'] ?? 'No Area'); ?></p>
-        </div>
-
-        <nav class="nav-menu">
-            <a href="employee_dashboard.php" class="nav-item active">
-                <span class="icon">🏠</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="my_tasks.php" class="nav-item">
-                <span class="icon">📋</span>
-                <span>My Tasks</span>
-            </a>
-            <a href="my_attendance.php" class="nav-item">
-                <span class="icon">✅</span>
-                <span>Attendance</span>
-            </a>
-            <a href="my_performance.php" class="nav-item">
-                <span class="icon">📈</span>
-                <span>My Performance</span>
-            </a>
-            <a href="my_schedule.php" class="nav-item">
-                <span class="icon">📦</span>
-                <span>Inventory</span>
-            </a>
-            <a href="my_leave.php" class="nav-item">
-                <span class="icon">🏖️</span>
-                <span>Apply Leave</span>
-            </a>
-            <a href="my_profile.php" class="nav-item">
-                <span class="icon">👤</span>
-                <span>Profile</span>
-            </a>
-            <a href="../auth/logout.php" class="nav-item" style="margin-top: 20px; opacity: 0.7;">
-                <span class="icon">🚪</span>
-                <span>Logout</span>
-            </a>
-        </nav>
-    </aside>
-
+    <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <div class="welcome-banner">
             <h1>👋 Welcome back, <?php echo htmlspecialchars(explode(' ', $employee_name)[0]); ?>!</h1>

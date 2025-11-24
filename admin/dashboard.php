@@ -4,9 +4,8 @@
  * Main overview and summary of all system modules
  */
 
-// Start session and check authentication
 session_start();
-date_default_timezone_set('Asia/Kuala_Lumpur'); // Malaysia timezone (MYT, UTC+8)
+date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
 // Check if user is logged in and is admin
@@ -14,6 +13,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
+
+// Set current page for sidebar
+$current_page = 'dashboard';
 
 // Get admin info
 $admin_id = $_SESSION['user_id'];
@@ -25,9 +27,6 @@ try {
     $total_admins = getOne("SELECT COUNT(*) as count FROM admins WHERE status = 'active'")['count'];
     $total_employees = getOne("SELECT COUNT(*) as count FROM employees WHERE status = 'active'")['count'];
     $total_users = $total_admins + $total_employees;
-    
-    // DEBUG - Check what we're counting
-    error_log("Dashboard Debug: Admins=$total_admins, Employees=$total_employees, Total=$total_users");
     
     // Bin Stats
     $total_bins = getOne("SELECT COUNT(*) as count FROM bins")['count'];
@@ -69,15 +68,9 @@ try {
     
 } catch (Exception $e) {
     // Default values if queries fail
-    // Recalculate users even if other queries fail
-    if (!isset($total_admins)) {
-        $total_admins = getOne("SELECT COUNT(*) as count FROM admins WHERE status = 'active'")['count'] ?? 0;
-    }
-    if (!isset($total_employees)) {
-        $total_employees = getOne("SELECT COUNT(*) as count FROM employees WHERE status = 'active'")['count'] ?? 0;
-    }
+    $total_admins = $total_admins ?? 0;
+    $total_employees = $total_employees ?? 0;
     $total_users = $total_admins + $total_employees;
-    
     $total_bins = 0;
     $online_bins = 0;
     $tasks_today = 0;
@@ -112,100 +105,6 @@ $current_date = date('l, F j, Y');
             min-height: 100vh;
         }
 
-        /* ============================================
-           SIDEBAR NAVIGATION
-           ============================================ */
-        .sidebar {
-            width: 250px;
-            background: #435334;
-            color: white;
-            padding: 20px 0;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
-        }
-
-        /* Logo */
-        .sidebar-logo {
-            width: 120px;
-            height: 120px;
-            background: #CEDEBD;
-            border-radius: 50%;
-            margin: 0 auto 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .sidebar-logo img {
-            width: 90px;
-            height: 90px;
-            object-fit: contain;
-        }
-
-        /* Navigation Menu */
-        .nav-menu {
-            flex: 1;
-            padding: 0 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: white;
-            font-size: 13px;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: white;
-            color: #435334;
-            font-weight: 600;
-        }
-
-        .nav-item .icon {
-            margin-right: 12px;
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-        }
-
-        /* Logout */
-        .logout-btn {
-            padding: 12px 15px;
-            margin: 10px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* ============================================
-           MAIN CONTENT
-           ============================================ */
         .main-content {
             margin-left: 250px;
             flex: 1;
@@ -441,16 +340,6 @@ $current_date = date('l, F j, Y');
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-            }
-            .sidebar-logo {
-                width: 50px;
-                height: 50px;
-            }
-            .nav-item span {
-                display: none;
-            }
             .main-content {
                 margin-left: 70px;
             }
@@ -461,72 +350,8 @@ $current_date = date('l, F j, Y');
     </style>
 </head>
 <body>
-    <!-- ============================================
-         SIDEBAR - 9 MODULES
-         ============================================ -->
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <?php if (file_exists('../assets/images/logo.png')): ?>
-                <img src="../assets/images/logo.png" alt="EcoBin">
-            <?php else: ?>
-                <span style="font-size: 40px;">🗑️</span>
-            <?php endif; ?>
-        </div>
+    <?php include '../includes/admin_sidebar.php'; ?>
 
-        <nav class="nav-menu">
-            <a href="dashboard.php" class="nav-item active">
-                <span class="icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="users.php" class="nav-item">
-                <span class="icon">👥</span>
-                <span>User Management</span>
-            </a>
-            <a href="bins.php" class="nav-item">
-                <span class="icon">🗑️</span>
-                <span>Bin Monitoring</span>
-            </a>
-            <a href="attendance.php" class="nav-item">
-                <span class="icon">✅</span>
-                <span>Attendance</span>
-            </a>
-            <a href="tasks.php" class="nav-item">
-                <span class="icon">📋</span>
-                <span>Tasks</span>
-            </a>
-            <a href="performance.php" class="nav-item">
-                <span class="icon">📈</span>
-                <span>Employee Performance</span>
-            </a>
-            <a href="analytics.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Waste Analytics</span>
-            </a>
-            <a href="inventory.php" class="nav-item">
-                <span class="icon">📦</span>
-                <span>Inventory</span>
-            </a>
-            <a href="leave.php" class="nav-item">
-                <span class="icon">📅</span>
-                <span>Leave Management</span>
-            </a>
-            <a href="maintenance.php" class="nav-item">
-                <span class="icon">🔧</span>
-                <span>Maintenance & Issues</span>
-            </a>
-        </nav>
-
-        <form action="../auth/logout.php" method="POST">
-            <button type="submit" class="logout-btn">
-                <span class="icon">🚪</span>
-                <span>Logout</span>
-            </button>
-        </form>
-    </aside>
-
-    <!-- ============================================
-         MAIN DASHBOARD CONTENT
-         ============================================ -->
     <main class="main-content">
         <!-- Header -->
         <div class="page-header">
@@ -551,8 +376,7 @@ $current_date = date('l, F j, Y');
                 <div class="stat-label">Active Users</div>
                 <div class="stat-change">
                     👤 <?php echo $total_admins; ?> admins + 
-                    👷 <?php echo $total_employees; ?> employees = 
-                    <?php echo $total_admins + $total_employees; ?> total
+                    👷 <?php echo $total_employees; ?> employees
                 </div>
             </div>
 
@@ -619,17 +443,17 @@ $current_date = date('l, F j, Y');
                         <h3 class="card-title">Quick Actions</h3>
                     </div>
                     <div class="quick-actions">
-                        <a href="tasks.php?action=create" class="action-btn">
+                        <a href="task_create.php" class="action-btn">
                             <span>➕</span> New Task
                         </a>
-                        <a href="users.php?action=create" class="action-btn">
+                        <a href="user_add.php" class="action-btn">
                             <span>👤</span> Add User
                         </a>
                         <a href="maintenance.php" class="action-btn">
                             <span>⚠️</span> View Alerts
                         </a>
                         <a href="analytics.php" class="action-btn">
-                            <span>📊</span> Reports
+                            <span>📊</span> Waste Analytics
                         </a>
                     </div>
                 </div>
@@ -638,7 +462,7 @@ $current_date = date('l, F j, Y');
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Top Performers (This Month)</h3>
-                        <a href="performance.php" class="card-link">View All →</a>
+                        <a href="admin_performance_overview.php" class="card-link">View All →</a>
                     </div>
                     
                     <?php if (empty($top_performers)): ?>
