@@ -14,6 +14,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     exit;
 }
 
+// Set current page for sidebar
+$current_page = 'tasks';
+
 $admin_id = $_SESSION['user_id'];
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
@@ -49,34 +52,6 @@ unset($_SESSION['error'], $_SESSION['success']);
             background: #FAF1E4;
             display: flex;
             min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: #435334;
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-logo {
-            width: 120px;
-            height: 120px;
-            background: #CEDEBD;
-            border-radius: 50%;
-            margin: 0 auto 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .sidebar-logo img {
-            width: 90px;
-            height: 90px;
-            object-fit: contain;
         }
 
         .nav-menu {
@@ -323,54 +298,7 @@ unset($_SESSION['error'], $_SESSION['success']);
     </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <img src="../assets/images/logo.png" alt="EcoBin Logo">
-        </div>
-
-        <nav class="nav-menu">
-            <a href="dashboard.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="users.php" class="nav-item">
-                <span class="icon">👥</span>
-                <span>User Management</span>
-            </a>
-            <a href="bins.php" class="nav-item">
-                <span class="icon">🗑️</span>
-                <span>Bin Monitoring</span>
-            </a>
-            <a href="attendance.php" class="nav-item">
-                <span class="icon">✅</span>
-                <span>Attendance</span>
-            </a>
-            <a href="tasks.php" class="nav-item active">
-                <span class="icon">📋</span>
-                <span>Tasks</span>
-            </a>
-            <a href="performance.php" class="nav-item">
-                <span class="icon">📈</span>
-                <span>Performance</span>
-            </a>
-            <a href="analytics.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Analytics</span>
-            </a>
-            <a href="inventory.php" class="nav-item">
-                <span class="icon">📦</span>
-                <span>Inventory</span>
-            </a>
-            <a href="leave.php" class="nav-item">
-                <span class="icon">📅</span>
-                <span>Leave</span>
-            </a>
-            <a href="maintenance.php" class="nav-item">
-                <span class="icon">🔧</span>
-                <span>Maintenance</span>
-            </a>
-        </nav>
-    </aside>
+    <?php include '../includes/admin_sidebar.php'; ?>
 
     <main class="main-content">
         <div class="page-header">

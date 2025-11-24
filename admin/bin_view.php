@@ -14,6 +14,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     exit;
 }
 
+// Set current page for sidebar
+$current_page = 'bins';
+
 $admin_id = $_SESSION['user_id'];
 $bin_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
@@ -23,10 +26,13 @@ if (!$bin_id) {
     exit;
 }
 
-// Get bin details
-$bin = getOne("SELECT b.*, a.area_name, a.block 
+// Get bin details with device info
+$bin = getOne("SELECT b.*, a.area_name, a.block,
+               d.device_code, d.device_status, d.last_ping, 
+               d.signal_strength, d.device_mac_address, d.device_model
                FROM bins b 
                LEFT JOIN areas a ON b.area_id = a.area_id 
+               LEFT JOIN iot_devices d ON b.device_id = d.device_id
                WHERE b.bin_id = ?", 
                [$bin_id]);
 
@@ -52,13 +58,11 @@ $tasks = getAll("SELECT t.*, e.full_name as employee_name
                  LIMIT 10", 
                  [$bin_id]);
 
-// Get maintenance records (skip if table doesn't exist yet)
-$maintenance = [];
-
 // Calculate statistics
 $total_collections = count(array_filter($tasks, fn($t) => $t['status'] === 'completed'));
 $pending_tasks = count(array_filter($tasks, fn($t) => $t['status'] === 'pending'));
 $avg_fill = $readings ? array_sum(array_column($readings, 'fill_level')) / count($readings) : 0;
+$avg_weight = $readings ? array_sum(array_column($readings, 'weight')) / count($readings) : 0;
 
 // Determine status color
 $status_class = 'normal';
@@ -78,6 +82,30 @@ $fill_color = '#27ae60';
 if ($bin['current_fill_level'] >= 80) $fill_color = '#e74c3c';
 elseif ($bin['current_fill_level'] >= 60) $fill_color = '#f39c12';
 elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
+
+// Helper functions
+function getSignalBars($rssi) {
+    if (!$rssi) return '<span style="color: #95a5a6;">○○○○</span>';
+    
+    if ($rssi >= -50) return '<span style="color: #27ae60;">●●●●</span>';
+    if ($rssi >= -60) return '<span style="color: #27ae60;">●●●○</span>';
+    if ($rssi >= -70) return '<span style="color: #f39c12;">●●○○</span>';
+    if ($rssi >= -80) return '<span style="color: #e74c3c;">●○○○</span>';
+    return '<span style="color: #e74c3c;">○○○○</span>';
+}
+
+function getWeightStatus($weight, $maxWeight) {
+    if (!$weight || !$maxWeight) return ['status' => 'Unknown', 'color' => '#95a5a6'];
+    
+    $percentage = ($weight / $maxWeight) * 100;
+    
+    if ($percentage >= 80) return ['status' => 'Heavy', 'color' => '#e74c3c'];
+    if ($percentage >= 50) return ['status' => 'Normal', 'color' => '#27ae60'];
+    if ($percentage >= 20) return ['status' => 'Light', 'color' => '#f39c12'];
+    return ['status' => 'Very Light', 'color' => '#95a5a6'];
+}
+
+$weightStatus = getWeightStatus($bin['current_weight'], $bin['max_weight']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -97,65 +125,6 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
             background: #FAF1E4;
             display: flex;
             min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: #435334;
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-logo {
-            width: 120px;
-            height: 120px;
-            background: #CEDEBD;
-            border-radius: 50%;
-            margin: 0 auto 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .sidebar-logo img {
-            width: 90px;
-            height: 90px;
-            object-fit: contain;
-        }
-
-        .nav-menu {
-            padding: 0 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 10px;
-            text-decoration: none;
-            color: white;
-            font-size: 13px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: white;
-            color: #435334;
-            font-weight: 600;
-        }
-
-        .nav-item .icon {
-            margin-right: 12px;
-            font-size: 18px;
         }
 
         .main-content {
@@ -183,6 +152,7 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 14px;
         }
 
         .back-link:hover {
@@ -229,9 +199,9 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
             font-size: 14px;
         }
 
-        .status-badge.full {
-            background: #fee;
-            color: #c00;
+        .status-badge.normal {
+            background: #d4edda;
+            color: #155724;
         }
 
         .status-badge.medium {
@@ -239,48 +209,154 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
             color: #856404;
         }
 
-        .status-badge.normal {
+        .status-badge.full {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.empty {
             background: #d1ecf1;
             color: #0c5460;
         }
 
-        .status-badge.empty {
-            background: #d4edda;
-            color: #155724;
-        }
-
         .fill-display {
             text-align: center;
-            padding: 30px;
+            padding: 20px;
             background: #f8f9fa;
             border-radius: 15px;
             margin-bottom: 30px;
         }
 
         .fill-percentage {
-            font-size: 72px;
+            font-size: 48px;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
         .fill-label {
-            font-size: 16px;
+            font-size: 14px;
             color: #666;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .fill-bar {
-            height: 30px;
+            height: 20px;
             background: #e0e0e0;
-            border-radius: 15px;
+            border-radius: 10px;
             overflow: hidden;
-            position: relative;
         }
 
         .fill-bar-inner {
             height: 100%;
-            border-radius: 15px;
             transition: width 0.3s ease;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .info-item .label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .info-item .value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #435334;
+        }
+
+        .device-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .device-section h3 {
+            color: #435334;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .device-info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .device-info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .device-info-item .label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .device-info-item .value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #435334;
+        }
+
+        .device-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot-online {
+            background: #27ae60;
+            box-shadow: 0 0 5px #27ae60;
+        }
+
+        .dot-offline {
+            background: #95a5a6;
+        }
+
+        .weight-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .weight-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .weight-status {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            background: #f0f0f0;
         }
 
         .stats-grid {
@@ -292,62 +368,36 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
 
         .stat-card {
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         .stat-card .value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
             color: #435334;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
 
         .stat-card .label {
-            font-size: 12px;
+            font-size: 13px;
             color: #999;
-            text-transform: uppercase;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .info-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-        }
-
-        .info-item .label {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .info-item .value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #435334;
         }
 
         .card {
             background: white;
             border-radius: 15px;
-            padding: 25px;
+            padding: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
         }
 
         .card h3 {
             color: #435334;
-            margin-bottom: 20px;
             font-size: 20px;
+            margin-bottom: 20px;
         }
 
         table {
@@ -355,39 +405,64 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
             border-collapse: collapse;
         }
 
-        th {
+        thead th {
             background: #f8f9fa;
             padding: 12px;
             text-align: left;
+            font-size: 12px;
             font-weight: 600;
-            color: #435334;
+            color: #666;
+            text-transform: uppercase;
             border-bottom: 2px solid #e0e0e0;
-            font-size: 13px;
         }
 
-        td {
-            padding: 12px;
+        tbody td {
+            padding: 15px 12px;
             border-bottom: 1px solid #f0f0f0;
             font-size: 14px;
         }
 
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
         .badge {
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: 600;
-            display: inline-block;
         }
 
-        .badge-pending { background: #fff3cd; color: #856404; }
-        .badge-in_progress { background: #cce5ff; color: #004085; }
-        .badge-completed { background: #d4edda; color: #155724; }
-        .badge-cancelled { background: #f8d7da; color: #721c24; }
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-in_progress {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
 
         .empty-state {
             text-align: center;
             padding: 40px;
             color: #999;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
         }
 
         .btn {
@@ -398,7 +473,10 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
         }
 
         .btn-primary {
@@ -406,67 +484,35 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
             color: white;
         }
 
+        .btn-primary:hover {
+            background: #354428;
+        }
+
         .btn-secondary {
             background: #CEDEBD;
             color: #435334;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
+        .btn-secondary:hover {
+            background: #b8ceaa;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+
+            .info-grid,
+            .device-info-grid,
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <img src="../assets/images/logo.png" alt="EcoBin Logo">
-        </div>
-
-        <nav class="nav-menu">
-            <a href="dashboard.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="users.php" class="nav-item">
-                <span class="icon">👥</span>
-                <span>User Management</span>
-            </a>
-            <a href="bins.php" class="nav-item active">
-                <span class="icon">🗑️</span>
-                <span>Bin Monitoring</span>
-            </a>
-            <a href="attendance.php" class="nav-item">
-                <span class="icon">✅</span>
-                <span>Attendance</span>
-            </a>
-            <a href="tasks.php" class="nav-item">
-                <span class="icon">📋</span>
-                <span>Tasks</span>
-            </a>
-            <a href="performance.php" class="nav-item">
-                <span class="icon">📈</span>
-                <span>Employee Performance</span>
-            </a>
-            <a href="analytics.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Waste Analytics</span>
-            </a>
-            <a href="inventory.php" class="nav-item">
-                <span class="icon">📦</span>
-                <span>Inventory</span>
-            </a>
-            <a href="leave.php" class="nav-item">
-                <span class="icon">📅</span>
-                <span>Leave Management</span>
-            </a>
-            <a href="maintenance.php" class="nav-item">
-                <span class="icon">🔧</span>
-                <span>Maintenance & Issues</span>
-            </a>
-        </nav>
-    </aside>
+    <?php include '../includes/admin_sidebar.php'; ?>
 
     <main class="main-content">
         <div class="page-header">
@@ -506,7 +552,7 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
 
             <div class="info-grid">
                 <div class="info-item">
-                    <div class="label">Capacity</div>
+                    <div class="label">Bin Capacity</div>
                     <div class="value"><?php echo $bin['bin_capacity']; ?> Liters</div>
                 </div>
                 <div class="info-item">
@@ -514,20 +560,60 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
                     <div class="value">Floor <?php echo $bin['floor_number'] ?? 'N/A'; ?></div>
                 </div>
                 <div class="info-item">
-                    <div class="label">Battery Level</div>
-                    <div class="value"><?php echo $bin['battery_level'] ?? 'N/A'; ?>%</div>
-                </div>
-                <div class="info-item">
                     <div class="label">Lid Status</div>
                     <div class="value"><?php echo $bin['lid_status'] === 'open' ? '🔓 Open' : '🔒 Closed'; ?></div>
                 </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="label">Current Weight</div>
+                    <div class="weight-display">
+                        <span class="weight-value">⚖️ <?php echo number_format($bin['current_weight'], 2); ?> kg</span>
+                        <span class="weight-status" style="color: <?php echo $weightStatus['color']; ?>">
+                            <?php echo $weightStatus['status']; ?>
+                        </span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Max Weight</div>
+                    <div class="value"><?php echo number_format($bin['max_weight'], 2); ?> kg</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Battery Level</div>
+                    <div class="value" style="color: <?php echo $bin['battery_level'] < 20 ? '#e74c3c' : '#27ae60'; ?>">
+                        🔋 <?php echo number_format($bin['battery_level'], 0); ?>%
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-grid">
                 <div class="info-item">
                     <div class="label">Last Updated</div>
                     <div class="value">
                         <?php 
                         if ($bin['last_updated']) {
-                            $date = new DateTime($bin['last_updated']);
-                            echo $date->format('M d, Y H:i');
+                            $diff = time() - strtotime($bin['last_updated']);
+                            if ($diff < 60) echo 'Just now';
+                            elseif ($diff < 3600) echo round($diff / 60) . ' mins ago';
+                            elseif ($diff < 86400) echo round($diff / 3600) . ' hrs ago';
+                            else echo date('M j, Y', strtotime($bin['last_updated']));
+                        } else {
+                            echo 'Never';
+                        }
+                        ?>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Last Weight Reading</div>
+                    <div class="value">
+                        <?php 
+                        if ($bin['last_weight_reading']) {
+                            $diff = time() - strtotime($bin['last_weight_reading']);
+                            if ($diff < 60) echo 'Just now';
+                            elseif ($diff < 3600) echo round($diff / 60) . ' mins ago';
+                            elseif ($diff < 86400) echo round($diff / 3600) . ' hrs ago';
+                            else echo date('M j', strtotime($bin['last_weight_reading']));
                         } else {
                             echo 'Never';
                         }
@@ -538,7 +624,11 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
                     <div class="label">GPS Coordinates</div>
                     <div class="value">
                         <?php if ($bin['gps_latitude'] && $bin['gps_longitude']): ?>
-                            <?php echo number_format($bin['gps_latitude'], 6); ?>, <?php echo number_format($bin['gps_longitude'], 6); ?>
+                            <a href="https://www.google.com/maps?q=<?php echo $bin['gps_latitude']; ?>,<?php echo $bin['gps_longitude']; ?>" 
+                               target="_blank" 
+                               style="color: #435334; text-decoration: none;">
+                                📍 View Map
+                            </a>
                         <?php else: ?>
                             Not available
                         <?php endif; ?>
@@ -546,6 +636,54 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
                 </div>
             </div>
         </div>
+
+        <?php if ($bin['device_id']): ?>
+        <div class="device-section">
+            <h3>📱 IoT Device Information</h3>
+            <div class="device-info-grid">
+                <div class="device-info-item">
+                    <div class="label">Device Status</div>
+                    <div class="value">
+                        <span class="device-status">
+                            <span class="status-dot <?php echo $bin['device_status'] === 'online' ? 'dot-online' : 'dot-offline'; ?>"></span>
+                            <?php echo ucfirst($bin['device_status'] ?? 'offline'); ?>
+                        </span>
+                    </div>
+                </div>
+                <div class="device-info-item">
+                    <div class="label">MAC Address</div>
+                    <div class="value" style="font-size: 12px; font-family: monospace;">
+                        <?php echo htmlspecialchars($bin['device_mac_address'] ?? 'N/A'); ?>
+                    </div>
+                </div>
+                <div class="device-info-item">
+                    <div class="label">WiFi Signal</div>
+                    <div class="value">
+                        <?php echo getSignalBars($bin['signal_strength']); ?>
+                        <?php if ($bin['signal_strength']): ?>
+                            <small style="color: #999;">(<?php echo $bin['signal_strength']; ?> dBm)</small>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="device-info-item">
+                    <div class="label">Last Ping</div>
+                    <div class="value" style="font-size: 13px;">
+                        <?php 
+                        if ($bin['last_ping']) {
+                            $diff = time() - strtotime($bin['last_ping']);
+                            if ($diff < 60) echo 'Just now';
+                            elseif ($diff < 3600) echo round($diff / 60) . ' mins ago';
+                            elseif ($diff < 86400) echo round($diff / 3600) . ' hrs ago';
+                            else echo date('M j', strtotime($bin['last_ping']));
+                        } else {
+                            echo 'Never';
+                        }
+                        ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <div class="stats-grid">
             <div class="stat-card">
@@ -561,8 +699,8 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
                 <div class="label">Avg Fill Level</div>
             </div>
             <div class="stat-card">
-                <div class="value"><?php echo count($readings); ?></div>
-                <div class="label">Recent Readings</div>
+                <div class="value"><?php echo number_format($avg_weight, 2); ?> kg</div>
+                <div class="label">Avg Weight</div>
             </div>
         </div>
 
@@ -608,9 +746,10 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
                     <tr>
                         <th>Timestamp</th>
                         <th>Fill Level</th>
+                        <th>Weight</th>
                         <th>Distance</th>
                         <th>Battery</th>
-                        <th>Temperature</th>
+                        <th>Signal</th>
                         <th>Lid Status</th>
                     </tr>
                 </thead>
@@ -618,10 +757,11 @@ elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
                     <?php foreach ($readings as $reading): ?>
                         <tr>
                             <td><?php echo date('M d, Y H:i', strtotime($reading['recorded_at'])); ?></td>
-                            <td><?php echo number_format($reading['fill_level'], 1); ?>%</td>
-                            <td><?php echo number_format($reading['distance'], 1); ?> cm</td>
-                            <td><?php echo number_format($reading['battery_voltage'], 2); ?>V</td>
-                            <td><?php echo $reading['temperature'] ? number_format($reading['temperature'], 1) . '°C' : 'N/A'; ?></td>
+                            <td><strong><?php echo number_format($reading['fill_level'], 1); ?>%</strong></td>
+                            <td><?php echo $reading['weight'] ? number_format($reading['weight'], 2) . ' kg' : 'N/A'; ?></td>
+                            <td><?php echo $reading['distance'] ? number_format($reading['distance'], 1) . ' cm' : 'N/A'; ?></td>
+                            <td><?php echo $reading['battery_voltage'] ? number_format($reading['battery_voltage'], 1) . '%' : 'N/A'; ?></td>
+                            <td><?php echo getSignalBars($reading['signal_quality']); ?></td>
                             <td><?php echo $reading['lid_status'] === 'open' ? '🔓' : '🔒'; ?></td>
                         </tr>
                     <?php endforeach; ?>

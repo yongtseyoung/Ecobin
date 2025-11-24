@@ -40,14 +40,19 @@ $params = [$employee_id];
 
 if ($filter === 'today') {
     $query .= " AND DATE(t.scheduled_date) = CURDATE()";
+    // Sort: Latest tasks first
+    $query .= " ORDER BY t.created_at DESC";
 } elseif ($filter === 'active') {
     $query .= " AND t.status IN ('pending', 'in_progress')";
+    // Sort: Priority first (urgent, high, medium, low), then status, then scheduled date
+    $query .= " ORDER BY 
+                FIELD(t.priority, 'urgent', 'high', 'medium', 'low'),
+                FIELD(t.status, 'in_progress', 'pending'),
+                t.scheduled_date ASC";
+} else {
+    // All tasks - Latest tasks first
+    $query .= " ORDER BY t.created_at DESC";
 }
-
-$query .= " ORDER BY 
-            FIELD(t.priority, 'urgent', 'high', 'medium', 'low'),
-            FIELD(t.status, 'in_progress', 'pending', 'completed'),
-            t.scheduled_date ASC";
 
 $tasks = getAll($query, $params);
 

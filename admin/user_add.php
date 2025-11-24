@@ -12,6 +12,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     exit;
 }
 
+// Set current page for sidebar
+$current_page = 'users';
+
 // Get user type to add (default: employee)
 $user_type = $_GET['type'] ?? 'employee';
 
@@ -42,65 +45,7 @@ unset($_SESSION['error']);
             min-height: 100vh;
         }
 
-        /* Sidebar - Same as users.php */
-        .sidebar {
-            width: 250px;
-            background: #435334;
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
 
-        .sidebar-logo {
-            width: 120px;
-            height: 120px;
-            background: #CEDEBD;
-            border-radius: 50%;
-            margin: 0 auto 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .sidebar-logo img {
-            width: 90px;
-            height: 90px;
-            object-fit: contain;
-        }
-
-        .nav-menu {
-            padding: 0 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin-bottom: 5px;
-            border-radius: 10px;
-            text-decoration: none;
-            color: white;
-            font-size: 13px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: white;
-            color: #435334;
-            font-weight: 600;
-        }
-
-        .nav-item .icon {
-            margin-right: 12px;
-            font-size: 18px;
-        }
 
         /* Main Content */
         .main-content {
@@ -295,9 +240,6 @@ unset($_SESSION['error']);
 
         /* Responsive */
         @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-            }
             .main-content {
                 margin-left: 70px;
             }
@@ -308,60 +250,8 @@ unset($_SESSION['error']);
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <?php if (file_exists('../assets/images/logo.png')): ?>
-                <img src="../assets/images/logo.png" alt="EcoBin">
-            <?php else: ?>
-                <span style="font-size: 40px;">🗑️</span>
-            <?php endif; ?>
-        </div>
-
-        <nav class="nav-menu">
-            <a href="dashboard.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="users.php" class="nav-item active">
-                <span class="icon">👥</span>
-                <span>User Management</span>
-            </a>
-            <a href="bins.php" class="nav-item">
-                <span class="icon">🗑️</span>
-                <span>Bin Monitoring</span>
-            </a>
-            <a href="attendance.php" class="nav-item">
-                <span class="icon">✅</span>
-                <span>Attendance</span>
-            </a>
-            <a href="tasks.php" class="nav-item">
-                <span class="icon">📋</span>
-                <span>Tasks</span>
-            </a>
-            <a href="performance.php" class="nav-item">
-                <span class="icon">📈</span>
-                <span>Performance</span>
-            </a>
-            <a href="analytics.php" class="nav-item">
-                <span class="icon">📊</span>
-                <span>Analytics</span>
-            </a>
-            <a href="inventory.php" class="nav-item">
-                <span class="icon">📦</span>
-                <span>Inventory</span>
-            </a>
-            <a href="leave.php" class="nav-item">
-                <span class="icon">📅</span>
-                <span>Leave</span>
-            </a>
-            <a href="maintenance.php" class="nav-item">
-                <span class="icon">🔧</span>
-                <span>Maintenance</span>
-            </a>
-        </nav>
-    </aside>
-
+    <?php include '../includes/admin_sidebar.php'; ?>
+    
     <!-- Main Content -->
     <main class="main-content">
         <!-- Page Header -->

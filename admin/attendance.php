@@ -159,6 +159,7 @@ if ($selected_date === date('Y-m-d')) {
             display: flex;
             align-items: center;
             gap: 10px;
+            font-size: 14px;
         }
 
         .alert-success {
@@ -183,19 +184,21 @@ if ($selected_date === date('Y-m-d')) {
 
         .stat-card {
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            text-align: center;
         }
 
         .stat-card h3 {
             font-size: 14px;
             color: #999;
+            text-transform: uppercase;
             margin-bottom: 10px;
         }
 
         .stat-card .value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
             color: #435334;
         }
@@ -223,7 +226,7 @@ if ($selected_date === date('Y-m-d')) {
 
         .filters form {
             display: grid;
-            grid-template-columns: repeat(4, 1fr) auto;
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             align-items: end;
         }
@@ -231,30 +234,36 @@ if ($selected_date === date('Y-m-d')) {
         .filter-group {
             display: flex;
             flex-direction: column;
+            gap: 8px;
         }
 
         .filter-group label {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
-            color: #435334;
-            margin-bottom: 8px;
+            color: #666;
+            text-transform: uppercase;
         }
 
         .filter-group input,
         .filter-group select {
             padding: 10px;
             border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 14px;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #435334;
         }
 
         /* Table */
         .table-container {
             background: white;
             border-radius: 15px;
-            padding: 20px;
+            padding: 30px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            overflow-x: auto;
         }
 
         table {
@@ -262,31 +271,33 @@ if ($selected_date === date('Y-m-d')) {
             border-collapse: collapse;
         }
 
-        th {
-            text-align: left;
-            padding: 15px;
+        thead th {
             background: #f8f9fa;
-            color: #435334;
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
             font-weight: 600;
-            font-size: 13px;
+            color: #666;
+            text-transform: uppercase;
             border-bottom: 2px solid #e0e0e0;
         }
 
-        td {
-            padding: 15px;
+        tbody td {
+            padding: 15px 12px;
             border-bottom: 1px solid #f0f0f0;
             font-size: 14px;
         }
 
-        tr:hover {
-            background: #fafafa;
+        tbody tr:hover {
+            background: #f8f9fa;
         }
 
         .status-badge {
             padding: 6px 12px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
+            text-transform: uppercase;
         }
 
         .status-present {
@@ -312,7 +323,7 @@ if ($selected_date === date('Y-m-d')) {
         .location-link {
             color: #435334;
             text-decoration: none;
-            font-size: 12px;
+            font-size: 13px;
         }
 
         .location-link:hover {
@@ -322,12 +333,20 @@ if ($selected_date === date('Y-m-d')) {
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #999;
         }
 
         .empty-state .icon {
             font-size: 64px;
             margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #435334;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #999;
         }
 
         /* Responsive */
@@ -359,75 +378,8 @@ if ($selected_date === date('Y-m-d')) {
                 <a href="attendance_manual.php" class="btn btn-secondary">
                     ✏️ Manual Entry
                 </a>
-                <div style="position: relative;">
-                    <button onclick="showEmployeeSelector()" class="btn btn-primary" style="cursor: pointer;">
-                        ✓ Check In/Out (Select Employee)
-                    </button>
-                    <!-- Employee Selector Dropdown -->
-                    <div id="employeeSelector" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 10px; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); padding: 20px; min-width: 300px; z-index: 1000;">
-                        <h3 style="margin-bottom: 10px; color: #435334;">👤 Select Employee</h3>
-                        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">
-                            Choose an employee to view their check-in/check-out page
-                        </p>
-                        <div style="margin-bottom: 15px;">
-                            <input type="text" id="employeeSearch" placeholder="Search employee..." 
-                                   style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;"
-                                   onkeyup="filterEmployees()">
-                        </div>
-                        <div id="employeeList" style="max-height: 300px; overflow-y: auto;">
-                            <?php foreach ($employees as $emp): ?>
-                                <a href="attendance_checkin.php?employee_id=<?php echo $emp['employee_id']; ?>" 
-                                   class="employee-item"
-                                   style="display: block; padding: 12px; margin-bottom: 5px; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: #435334; transition: all 0.2s;"
-                                   onmouseover="this.style.background='#CEDEBD'" 
-                                   onmouseout="this.style.background='#f8f9fa'">
-                                    <strong><?php echo htmlspecialchars($emp['full_name']); ?></strong>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                        <button onclick="hideEmployeeSelector()" 
-                                style="width: 100%; margin-top: 10px; padding: 10px; background: #f0f0f0; border: none; border-radius: 8px; cursor: pointer;">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
-
-        <script>
-            function showEmployeeSelector() {
-                document.getElementById('employeeSelector').style.display = 'block';
-                document.getElementById('employeeSearch').focus();
-            }
-
-            function hideEmployeeSelector() {
-                document.getElementById('employeeSelector').style.display = 'none';
-            }
-
-            function filterEmployees() {
-                const searchText = document.getElementById('employeeSearch').value.toLowerCase();
-                const items = document.querySelectorAll('.employee-item');
-                
-                items.forEach(item => {
-                    const text = item.textContent.toLowerCase();
-                    if (text.includes(searchText)) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            }
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(event) {
-                const selector = document.getElementById('employeeSelector');
-                const button = event.target.closest('.btn-primary');
-                
-                if (!selector.contains(event.target) && !button) {
-                    hideEmployeeSelector();
-                }
-            });
-        </script>
 
         <!-- Alert Messages -->
         <?php if ($success): ?>
@@ -544,7 +496,7 @@ if ($selected_date === date('Y-m-d')) {
                                 <td>
                                     <?php if ($record['check_in_location']): ?>
                                         <a href="https://www.google.com/maps?q=<?php echo urlencode($record['check_in_location']); ?>" 
-                                           target="_blank" 
+                           target="_blank" 
                                            class="location-link">
                                             📍 View Map
                                         </a>

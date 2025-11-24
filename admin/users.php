@@ -59,10 +59,6 @@ $total_admins = count($admins);
 $total_employees = count($employees);
 $active_admins = count(array_filter($admins, fn($a) => $a['status'] === 'active'));
 $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'active'));
-
-// Get current date info
-$current_time = date('g:i A');
-$current_date = date('l, F j, Y');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -100,20 +96,6 @@ $current_date = date('l, F j, Y');
         .page-header h1 {
             font-size: 32px;
             color: #435334;
-        }
-
-        .header-info {
-            text-align: right;
-        }
-
-        .header-time {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .header-date {
-            font-size: 12px;
-            color: #999;
         }
 
         .btn-primary {
@@ -448,18 +430,10 @@ $current_date = date('l, F j, Y');
     <main class="main-content">
         <!-- Page Header -->
         <div class="page-header">
-            <div>
-                <h1>👥 User Account Management</h1>
-            </div>
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <div class="header-info">
-                    <div class="header-time"><?php echo $current_time; ?></div>
-                    <div class="header-date"><?php echo $current_date; ?></div>
-                </div>
-                <a href="user_add.php" class="btn-primary">
-                    <span>➕</span> Add New User
-                </a>
-            </div>
+            <h1>👥 User Account Management</h1>
+            <a href="user_add.php" class="btn-primary">
+                <span>➕</span> Add New User
+            </a>
         </div>
 
         <!-- Alert Messages -->

@@ -164,10 +164,6 @@ $total_weight_kg = $waste_stats['total_weight'] ?? 0;
 $co2_saved = $total_weight_kg * 0.5; // Estimate: 0.5kg CO2 saved per kg recycled
 $trees_saved = $total_weight_kg / 17; // Estimate: 17kg paper = 1 tree
 $energy_saved = $total_weight_kg * 2; // Estimate: 2kWh saved per kg recycled
-
-// Get current date info
-$current_time = date('g:i A');
-$current_date = date('l, F j, Y');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -208,20 +204,6 @@ $current_date = date('l, F j, Y');
         .page-header h1 {
             font-size: 32px;
             color: #435334;
-        }
-
-        .header-info {
-            text-align: right;
-        }
-
-        .header-time {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .header-date {
-            font-size: 12px;
-            color: #999;
         }
 
         .btn-secondary {
@@ -512,18 +494,10 @@ $current_date = date('l, F j, Y');
     <div class="main-content">
         <!-- Page Header -->
         <div class="page-header">
-            <div>
-                <h1>📊 Waste Analytics</h1>
-            </div>
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <div class="header-info">
-                    <div class="header-time"><?php echo $current_time; ?></div>
-                    <div class="header-date"><?php echo $current_date; ?></div>
-                </div>
-                <a href="analytics_reports.php" class="btn-secondary">
-                    📄 View Reports
-                </a>
-            </div>
+            <h1>📊 Waste Analytics</h1>
+            <a href="analytics_reports.php" class="btn-secondary">
+                📄 View Reports
+            </a>
         </div>
 
         <!-- Period Filter -->

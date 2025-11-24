@@ -58,10 +58,6 @@ $grade_colors = [
     'needs_improvement' => '#e67e22',
     'poor' => '#e74c3c'
 ];
-
-// Get current date info
-$current_time = date('g:i A');
-$current_date = date('l, F j, Y');
 ?>
 
 <!DOCTYPE html>
@@ -96,29 +92,12 @@ $current_date = date('l, F j, Y');
 
         /* Header */
         .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 30px;
         }
 
         .page-header h1 {
             font-size: 32px;
             color: #435334;
-        }
-
-        .header-info {
-            text-align: right;
-        }
-
-        .header-time {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .header-date {
-            font-size: 12px;
-            color: #999;
         }
 
         /* Welcome Card */
@@ -405,10 +384,6 @@ $current_date = date('l, F j, Y');
         <!-- Page Header -->
         <div class="page-header">
             <h1>📈 Team Performance Overview</h1>
-            <div class="header-info">
-                <div class="header-time"><?php echo $current_time; ?></div>
-                <div class="header-date"><?php echo $current_date; ?></div>
-            </div>
         </div>
 
         <!-- Welcome Card -->
