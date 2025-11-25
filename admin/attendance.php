@@ -19,6 +19,41 @@ $current_page = 'attendance';
 
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
+// ============ ADDED: Handle Approval Actions ============
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+    $attendance_id = $_POST['attendance_id'] ?? null;
+    
+    if ($action === 'approve' && $attendance_id) {
+        $new_status = $_POST['approved_status'] ?? 'late';
+        
+        try {
+            $sql = "UPDATE attendance SET status = ?, notes = CONCAT(IFNULL(notes, ''), '\n[Approved by Admin on ', NOW(), ']') WHERE attendance_id = ?";
+            query($sql, [$new_status, $attendance_id]);
+            $_SESSION['success'] = "Attendance approved and status changed to " . ucfirst($new_status);
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Failed to approve attendance: " . $e->getMessage();
+        }
+        
+        header("Location: attendance.php?date=" . ($_POST['date'] ?? date('Y-m-d')));
+        exit;
+    }
+    
+    if ($action === 'reject' && $attendance_id) {
+        try {
+            $sql = "UPDATE attendance SET notes = CONCAT(IFNULL(notes, ''), '\n[Rejected by Admin on ', NOW(), ']') WHERE attendance_id = ?";
+            query($sql, [$attendance_id]);
+            $_SESSION['success'] = "Attendance record rejected. Status remains as Absent.";
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Failed to reject attendance: " . $e->getMessage();
+        }
+        
+        header("Location: attendance.php?date=" . ($_POST['date'] ?? date('Y-m-d')));
+        exit;
+    }
+}
+// ============ END ADDED ============
+
 // Get filter parameters
 $selected_date = $_GET['date'] ?? date('Y-m-d');
 $selected_employee = $_GET['employee'] ?? '';
@@ -55,11 +90,26 @@ $attendance_records = getAll($query, $params);
 // Get all employees for filter dropdown
 $employees = getAll("SELECT employee_id, full_name FROM employees WHERE status = 'active' ORDER BY full_name");
 
-// Calculate statistics for selected date
+// ============ FIXED: Calculate statistics properly ============
 $total_employees = getOne("SELECT COUNT(*) as count FROM employees WHERE status = 'active'")['count'];
-$present_count = count(array_filter($attendance_records, fn($r) => in_array($r['status'], ['present', 'late'])));
+$present_count = count(array_filter($attendance_records, fn($r) => $r['status'] === 'present'));
 $late_count = count(array_filter($attendance_records, fn($r) => $r['status'] === 'late'));
-$absent_count = $total_employees - $present_count;
+
+// Count employees who actually checked in
+$checked_in_count = count($attendance_records);
+$absent_count = $total_employees - $checked_in_count;
+// ============ END FIXED ============
+
+// ============ ADDED: Count pending approvals ============
+$pending_approvals = array_filter($attendance_records, function($r) {
+    return $r['status'] === 'absent' 
+        && !empty($r['notes']) 
+        && strpos($r['notes'], 'Late reason:') === 0
+        && strpos($r['notes'], '[Approved by Admin') === false
+        && strpos($r['notes'], '[Rejected by Admin') === false;
+});
+$pending_count = count($pending_approvals);
+// ============ END ADDED ============
 
 // Get employees who haven't checked in yet
 $checked_in_ids = array_column($attendance_records, 'employee_id');
@@ -151,6 +201,30 @@ if ($selected_date === date('Y-m-d')) {
             background: #b8ceaa;
         }
 
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .btn-approve {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #229954;
+        }
+
+        .btn-reject {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #c0392b;
+        }
+
         /* Alert Messages */
         .alert {
             padding: 15px 20px;
@@ -177,7 +251,7 @@ if ($selected_date === date('Y-m-d')) {
         /* Stats Cards */
         .stats-row {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -213,6 +287,10 @@ if ($selected_date === date('Y-m-d')) {
 
         .stat-card.absent .value {
             color: #e74c3c;
+        }
+
+        .stat-card.pending .value {
+            color: #ff9800;
         }
 
         /* Filters */
@@ -292,6 +370,14 @@ if ($selected_date === date('Y-m-d')) {
             background: #f8f9fa;
         }
 
+        tbody tr.needs-approval {
+            background: #fff8e1;
+        }
+
+        tbody tr.needs-approval:hover {
+            background: #ffecb3;
+        }
+
         .status-badge {
             padding: 6px 12px;
             border-radius: 20px;
@@ -315,11 +401,6 @@ if ($selected_date === date('Y-m-d')) {
             color: #721c24;
         }
 
-        .status-half_day {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
         .location-link {
             color: #435334;
             text-decoration: none;
@@ -328,6 +409,92 @@ if ($selected_date === date('Y-m-d')) {
 
         .location-link:hover {
             text-decoration: underline;
+        }
+
+        /* Notes Display */
+        .notes-cell {
+            max-width: 250px;
+        }
+
+        .notes-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .notes-empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        .notes-reason {
+            background: #fff3cd;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border-left: 3px solid #ffc107;
+            font-size: 13px;
+            color: #856404;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .notes-reason strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .approval-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .approval-form {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-select {
+            padding: 6px 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: white;
+        }
+
+        .status-select:focus {
+            outline: none;
+            border-color: #435334;
+        }
+
+        .approval-status {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .rejection-status {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
         }
 
         .empty-state {
@@ -414,6 +581,10 @@ if ($selected_date === date('Y-m-d')) {
                 <h3>Absent</h3>
                 <div class="value"><?php echo $absent_count; ?></div>
             </div>
+            <div class="stat-card pending">
+                <h3>Pending Approval</h3>
+                <div class="value"><?php echo $pending_count; ?></div>
+            </div>
         </div>
 
         <!-- Filters -->
@@ -442,7 +613,6 @@ if ($selected_date === date('Y-m-d')) {
                         <option value="present" <?php echo $selected_status === 'present' ? 'selected' : ''; ?>>Present</option>
                         <option value="late" <?php echo $selected_status === 'late' ? 'selected' : ''; ?>>Late</option>
                         <option value="absent" <?php echo $selected_status === 'absent' ? 'selected' : ''; ?>>Absent</option>
-                        <option value="half_day" <?php echo $selected_status === 'half_day' ? 'selected' : ''; ?>>Half Day</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -469,12 +639,21 @@ if ($selected_date === date('Y-m-d')) {
                             <th>Work Hours</th>
                             <th>Status</th>
                             <th>Location</th>
-                            <th>Notes</th>
+                            <th>Notes / Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($attendance_records as $record): ?>
-                            <tr>
+                        <?php foreach ($attendance_records as $record): 
+                            $needs_approval = $record['status'] === 'absent' 
+                                && !empty($record['notes']) 
+                                && strpos($record['notes'], 'Late reason:') === 0
+                                && strpos($record['notes'], '[Approved by Admin') === false
+                                && strpos($record['notes'], '[Rejected by Admin') === false;
+                            
+                            $is_approved = strpos($record['notes'], '[Approved by Admin') !== false;
+                            $is_rejected = strpos($record['notes'], '[Rejected by Admin') !== false;
+                        ?>
+                            <tr <?php echo $needs_approval ? 'class="needs-approval"' : ''; ?>>
                                 <td>
                                     <strong><?php echo htmlspecialchars($record['full_name']); ?></strong><br>
                                     <small style="color: #999;"><?php echo htmlspecialchars($record['area_name'] ?? 'No Area'); ?></small>
@@ -496,7 +675,7 @@ if ($selected_date === date('Y-m-d')) {
                                 <td>
                                     <?php if ($record['check_in_location']): ?>
                                         <a href="https://www.google.com/maps?q=<?php echo urlencode($record['check_in_location']); ?>" 
-                           target="_blank" 
+                                           target="_blank" 
                                            class="location-link">
                                             📍 View Map
                                         </a>
@@ -504,7 +683,50 @@ if ($selected_date === date('Y-m-d')) {
                                         <span style="color: #999;">N/A</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo htmlspecialchars($record['notes'] ?? ''); ?></td>
+                                <td class="notes-cell">
+                                    <?php if (!empty($record['notes'])): ?>
+                                        <?php if (strpos($record['notes'], 'Late reason:') === 0): ?>
+                                            <div class="notes-reason">
+                                                <strong>📝 Late Reason:</strong>
+                                                <?php 
+                                                $notes_parts = explode("\n", $record['notes']);
+                                                $reason = trim(str_replace('Late reason:', '', $notes_parts[0]));
+                                                echo htmlspecialchars($reason); 
+                                                ?>
+                                            </div>
+                                            
+                                            <?php if ($needs_approval): ?>
+                                                <div class="approval-actions">
+                                                    <form method="POST" class="approval-form">
+                                                        <input type="hidden" name="action" value="approve">
+                                                        <input type="hidden" name="attendance_id" value="<?php echo $record['attendance_id']; ?>">
+                                                        <input type="hidden" name="date" value="<?php echo $selected_date; ?>">
+                                                        <select name="approved_status" class="status-select" required>
+                                                            <option value="late">Change to Late</option>
+                                                            <option value="present">Change to Present</option>
+                                                            <option value="absent">Keep as Absent</option>
+                                                        </select>
+                                                        <button type="submit" class="btn btn-sm btn-approve">✓ Approve</button>
+                                                    </form>
+                                                    <form method="POST" class="approval-form">
+                                                        <input type="hidden" name="action" value="reject">
+                                                        <input type="hidden" name="attendance_id" value="<?php echo $record['attendance_id']; ?>">
+                                                        <input type="hidden" name="date" value="<?php echo $selected_date; ?>">
+                                                        <button type="submit" class="btn btn-sm btn-reject" onclick="return confirm('Reject this attendance? Status will remain as Absent.')">✗ Reject</button>
+                                                    </form>
+                                                </div>
+                                            <?php elseif ($is_approved): ?>
+                                                <span class="approval-status">✓ Approved</span>
+                                            <?php elseif ($is_rejected): ?>
+                                                <span class="rejection-status">✗ Rejected</span>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span class="notes-text"><?php echo htmlspecialchars($record['notes']); ?></span>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <span class="notes-empty">—</span>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

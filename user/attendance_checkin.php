@@ -56,6 +56,36 @@ unset($_SESSION['success'], $_SESSION['error']);
 // Current time
 $current_time = date('g:i A');
 $current_date = date('l, F j, Y');
+
+// ============ Determine current status for warning banner ============
+$current_hour = (int)date('H');
+$current_minute = (int)date('i');
+
+$status_message = '';
+$status_class = '';
+$requires_reason = false;
+
+if (!$has_checked_in) {
+    // Before 8:30 AM = ON TIME
+    if ($current_hour < 8 || ($current_hour == 8 && $current_minute <= 30)) {
+        $status_message = '✅ On Time - Will be marked as PRESENT (Great job!)';
+        $status_class = 'alert-success';
+        $requires_reason = false;
+    } 
+    // 8:31 AM - 11:59 AM = LATE
+    elseif ($current_hour < 12) {
+        $status_message = '⚠️ Late Arrival - Will be marked as LATE';
+        $status_class = 'alert-warning';
+        $requires_reason = true;
+    } 
+    // After 12:00 PM = ABSENT
+    else {
+        $status_message = '❌ Very Late - Will be marked as ABSENT (Requires manager approval)';
+        $status_class = 'alert-danger';
+        $requires_reason = true;
+    }
+}
+// ============ END ============
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -278,6 +308,20 @@ $current_date = date('l, F j, Y');
             border: 2px solid #f5c6cb;
         }
 
+        /* ============ ADDED: Warning and Danger Alert Styles ============ */
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        /* ============ END ADDED ============ */
+
         /* Status Card */
         .status-card {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -467,6 +511,67 @@ $current_date = date('l, F j, Y');
             font-size: 28px;
         }
 
+        /* ============ ADDED: Reason Field Styles ============ */
+        .reason-field {
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .reason-field label {
+            display: block;
+            margin-bottom: 10px;
+            color: #435334;
+            font-weight: 700;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .reason-field .required-badge {
+            color: #e74c3c;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+
+        .reason-field textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #CEDEBD;
+            border-radius: 15px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .reason-field textarea:focus {
+            outline: none;
+            border-color: #27ae60;
+            background: white;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.1);
+        }
+
+        .reason-field .help-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .reason-field .help-text.warning {
+            color: #856404;
+        }
+
+        .reason-field .help-text.danger {
+            color: #721c24;
+        }
+
         /* Animations */
         @keyframes fadeInUp {
             from {
@@ -630,6 +735,21 @@ $current_date = date('l, F j, Y');
                     </div>
                 <?php endif; ?>
 
+                <!-- ============ ADDED: Status Warning Banner ============ -->
+                <?php if (!$has_checked_in && $status_message): ?>
+                    <div class="alert <?php echo $status_class; ?>">
+                        <span style="font-size: 20px;">
+                            <?php 
+                            if ($status_class === 'alert-success') echo '✅';
+                            elseif ($status_class === 'alert-warning') echo '⚠️';
+                            else echo '❗';
+                            ?>
+                        </span>
+                        <span><?php echo $status_message; ?></span>
+                    </div>
+                <?php endif; ?>
+                <!-- ============ END ADDED ============ -->
+
                 <!-- Location Status -->
                 <div class="location-status location-detecting" id="location-status">
                     <span class="spinner"></span>
@@ -658,7 +778,7 @@ $current_date = date('l, F j, Y');
                             </div>
                             <div class="status-item">
                                 <label>Status</label>
-                                <div class="value"><?php echo ucfirst($attendance_today['status']); ?></div>
+                                <div class="value"><?php echo ucfirst(str_replace('_', ' ', $attendance_today['status'])); ?></div>
                             </div>
                             <div class="status-item">
                                 <label>Work Hours</label>
@@ -674,6 +794,33 @@ $current_date = date('l, F j, Y');
                         <input type="hidden" name="action" value="checkin">
                         <input type="hidden" name="employee_id" value="<?php echo $employee_id; ?>">
                         <input type="hidden" name="location" id="checkin-location">
+                        
+                        <!-- ============ ADDED: Reason Field ============ -->
+                        <?php if (!$has_checked_in && $requires_reason): ?>
+                            <div class="reason-field">
+                                <label>
+                                    Reason for Late Arrival
+                                    <?php if ($current_hour >= 12): ?>
+                                        <span class="required-badge">(Required)</span>
+                                    <?php else: ?>
+                                        <span class="required-badge">(Optional)</span>
+                                    <?php endif; ?>
+                                </label>
+                                <textarea 
+                                    name="late_reason" 
+                                    placeholder="Please explain why you're checking in late..."
+                                    <?php echo ($current_hour >= 12) ? 'required' : ''; ?>
+                                ></textarea>
+                                <small class="help-text <?php echo ($current_hour >= 12) ? 'danger' : 'warning'; ?>">
+                                    <?php if ($current_hour >= 12): ?>
+                                        ⚠️ Check-ins after 12 PM require manager approval. Please provide a valid reason.
+                                    <?php else: ?>
+                                        💡 This will help your manager understand the situation.
+                                    <?php endif; ?>
+                                </small>
+                            </div>
+                        <?php endif; ?>
+                        <!-- ============ END ADDED ============ -->
                         
                         <button type="submit" class="btn btn-checkin" id="checkin-btn" <?php echo $has_checked_in ? 'disabled' : ''; ?>>
                             <span class="icon-large">✓</span>

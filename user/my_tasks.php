@@ -600,7 +600,7 @@ $current_date = date('l, F j, Y');
                     Today
                 </a>
                 <a href="?filter=all" class="filter-tab <?php echo $filter === 'all' ? 'active' : ''; ?>">
-                    All Tasks
+                    Tasks History
                 </a>
             </div>
         </div>

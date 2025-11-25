@@ -16,8 +16,6 @@ if (!isset($_SESSION['user_id'])) {
 
 // Attendance settings
 $WORK_START_TIME = '08:30:00';  // Work starts at 8:30 AM
-$LATE_THRESHOLD_MINUTES = 15;   // 15 minutes grace period
-$HALF_DAY_HOURS = 4;             // Less than 4 hours = half day
 
 // Get action
 $action = $_POST['action'] ?? '';
@@ -45,10 +43,20 @@ try {
  * Process employee check-in
  */
 function processCheckIn() {
-    global $WORK_START_TIME, $LATE_THRESHOLD_MINUTES;
+    // Security check for employee_id
+    if ($_SESSION['user_type'] === 'employee') {
+        $employee_id = $_SESSION['user_id'];
+    } else {
+        $employee_id = $_POST['employee_id'] ?? null;
+        if (!$employee_id) {
+            $_SESSION['error'] = "Employee ID is required";
+            header("Location: attendance_checkin.php");
+            exit;
+        }
+    }
     
-    $employee_id = $_POST['employee_id'];
     $location = $_POST['location'] ?? '';
+    $late_reason = trim($_POST['late_reason'] ?? '');
     
     if (empty($location)) {
         $_SESSION['error'] = "Location is required for check-in";
@@ -70,23 +78,35 @@ function processCheckIn() {
         exit;
     }
     
-    // Determine status based on check-in time
-    $status = determineStatus($check_in_time, $WORK_START_TIME, $LATE_THRESHOLD_MINUTES);
+    // Determine status using new function
+    $status = determineStatus($check_in_time);
+    
+    // For very late check-ins (absent status), require a reason
+    if ($status === 'absent' && empty($late_reason)) {
+        $_SESSION['error'] = "A reason is required for check-ins after 12:00 PM (noon)";
+        header("Location: attendance_checkin.php?employee_id=$employee_id");
+        exit;
+    }
+    
+    // Prepare notes with late reason if provided
+    $notes = null;
+    if (!empty($late_reason)) {
+        $notes = "Late reason: " . $late_reason;
+    }
     
     // Insert or update attendance record
     if ($existing) {
-        // Update existing record
         $sql = "UPDATE attendance 
                 SET check_in_time = ?, 
                     check_in_location = ?, 
-                    status = ?
+                    status = ?,
+                    notes = ?
                 WHERE attendance_id = ?";
-        query($sql, [$check_in_time, $location, $status, $existing['attendance_id']]);
+        query($sql, [$check_in_time, $location, $status, $notes, $existing['attendance_id']]);
     } else {
-        // Insert new record
-        $sql = "INSERT INTO attendance (employee_id, attendance_date, check_in_time, check_in_location, status) 
-                VALUES (?, ?, ?, ?, ?)";
-        query($sql, [$employee_id, $attendance_date, $check_in_time, $location, $status]);
+        $sql = "INSERT INTO attendance (employee_id, attendance_date, check_in_time, check_in_location, status, notes) 
+                VALUES (?, ?, ?, ?, ?, ?)";
+        query($sql, [$employee_id, $attendance_date, $check_in_time, $location, $status, $notes]);
     }
     
     $_SESSION['success'] = "Checked in successfully at " . date('g:i A', strtotime($check_in_time));
@@ -98,9 +118,18 @@ function processCheckIn() {
  * Process employee check-out
  */
 function processCheckOut() {
-    global $HALF_DAY_HOURS;
+    // Security check for employee_id
+    if ($_SESSION['user_type'] === 'employee') {
+        $employee_id = $_SESSION['user_id'];
+    } else {
+        $employee_id = $_POST['employee_id'] ?? null;
+        if (!$employee_id) {
+            $_SESSION['error'] = "Employee ID is required";
+            header("Location: attendance_checkin.php");
+            exit;
+        }
+    }
     
-    $employee_id = $_POST['employee_id'];
     $location = $_POST['location'] ?? '';
     
     if (empty($location)) {
@@ -132,11 +161,10 @@ function processCheckOut() {
     // Calculate work hours
     $work_hours = calculateWorkHours($attendance['check_in_time'], $check_out_time);
     
-    // Adjust status if half day
+    // ============ CHANGED: Keep original check-in status (don't change based on work hours) ============
     $status = $attendance['status'];
-    if ($work_hours < $HALF_DAY_HOURS) {
-        $status = 'half_day';
-    }
+    // Status is determined by check-in time only, not by work duration
+    // ============ END CHANGED ============
     
     // Update attendance record
     $sql = "UPDATE attendance 
@@ -155,18 +183,30 @@ function processCheckOut() {
 
 /**
  * Determine attendance status based on check-in time
+ * Option A: Industry Standard
+ * 
+ * Rules:
+ * - Before 8:30 AM = PRESENT (On time - rewards early arrivals)
+ * - 8:31 AM - 11:59 AM = LATE (Still acceptable, has afternoon to work)
+ * - After 12:00 PM = ABSENT (Missed half day - requires manager approval)
  */
-function determineStatus($check_in_time, $work_start_time, $late_threshold_minutes) {
-    $checkin_timestamp = strtotime($check_in_time);
-    $start_timestamp = strtotime($work_start_time);
-    $late_threshold_timestamp = $start_timestamp + ($late_threshold_minutes * 60);
+function determineStatus($check_in_time) {
+    // Extract hour and minute from check-in time (HH:MM:SS format)
+    list($hour, $minute, $second) = explode(':', $check_in_time);
+    $hour = (int)$hour;
+    $minute = (int)$minute;
     
-    if ($checkin_timestamp <= $start_timestamp) {
-        return 'present';  // On time
-    } elseif ($checkin_timestamp <= $late_threshold_timestamp) {
-        return 'present';  // Within grace period
-    } else {
-        return 'late';     // Late
+    // Before 8:30 AM = ON TIME (rewards early birds!)
+    if ($hour < 8 || ($hour == 8 && $minute <= 30)) {
+        return 'present';
+    }
+    // 8:31 AM - 11:59 AM = LATE (still has afternoon to work)
+    elseif ($hour < 12) {
+        return 'late';
+    }
+    // After 12:00 PM (noon) = ABSENT (missed half day - needs approval)
+    else {
+        return 'absent';
     }
 }
 

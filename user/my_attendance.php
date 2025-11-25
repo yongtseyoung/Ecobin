@@ -32,16 +32,18 @@ $attendance_records = getAll(
     [$employee_id, $month_filter]
 );
 
-// Calculate monthly stats
+// ============ FIXED: Calculate monthly stats - Only present, late, absent ============
 $total_days = count($attendance_records);
 $present_days = count(array_filter($attendance_records, fn($a) => $a['status'] === 'present'));
 $late_days = count(array_filter($attendance_records, fn($a) => $a['status'] === 'late'));
 $absent_days = count(array_filter($attendance_records, fn($a) => $a['status'] === 'absent'));
 $total_hours = array_sum(array_column($attendance_records, 'work_hours'));
 
-// Calculate attendance rate
+// Calculate attendance rate (present + late = attended)
 $working_days = getWorkingDaysInMonth($month_filter);
-$attendance_rate = $working_days > 0 ? ($present_days / $working_days) * 100 : 0;
+$attended_days = $present_days + $late_days;
+$attendance_rate = $working_days > 0 ? ($attended_days / $working_days) * 100 : 0;
+// ============ END FIXED ============
 
 // Get this week's stats
 $week_start = date('Y-m-d', strtotime('monday this week'));
@@ -51,15 +53,18 @@ $week_attendance = getAll(
     [$employee_id, $week_start, $week_end]
 );
 
-$week_present = count(array_filter($week_attendance, fn($a) => $a['status'] !== 'absent'));
+// ============ FIXED: Week stats - Only present + late ============
+$week_present = count(array_filter($week_attendance, fn($a) => in_array($a['status'], ['present', 'late'])));
 $week_hours = array_sum(array_column($week_attendance, 'work_hours'));
+// ============ END FIXED ============
 
 // Check today's status
 $today = date('Y-m-d');
 $today_attendance = getOne("SELECT * FROM attendance WHERE employee_id = ? AND attendance_date = ?", [$employee_id, $today]);
 
-$current_time = date('g:i A');
-$current_date = date('l, F j, Y');
+// Check current time for warnings
+$current_hour = (int)date('H');
+$current_minute = (int)date('i');
 
 // Function to get working days in a month
 function getWorkingDaysInMonth($month) {
@@ -105,29 +110,12 @@ function getWorkingDaysInMonth($month) {
 
         /* Page Header */
         .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 30px;
         }
 
         .page-header h1 {
             font-size: 32px;
             color: #435334;
-        }
-
-        .header-info {
-            text-align: right;
-        }
-
-        .header-time {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .header-date {
-            font-size: 12px;
-            color: #999;
         }
 
         /* Welcome Banner */
@@ -206,6 +194,50 @@ function getWorkingDaysInMonth($month) {
             margin-right: 10px;
         }
 
+        /* Time Status Notice */
+        .time-status-notice {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .time-status-notice.ontime {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .time-status-notice.late {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+
+        .time-status-notice.very_late {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        /* Current Time Display */
+        .current-time-display {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .current-time-display strong {
+            color: #435334;
+            font-size: 16px;
+        }
+
         /* Stats Grid */
         .stats-grid {
             display: grid;
@@ -247,7 +279,7 @@ function getWorkingDaysInMonth($month) {
         }
 
         .stat-card.highlight {
-            background: linear-gradient(135deg, #CEDEBD, #9db89a);
+            background: #ffffffff;
         }
 
         .stat-card.highlight .stat-value {
@@ -477,12 +509,6 @@ function getWorkingDaysInMonth($month) {
                 padding: 20px;
             }
 
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
             .welcome-banner {
                 flex-direction: column;
                 text-align: center;
@@ -541,10 +567,6 @@ function getWorkingDaysInMonth($month) {
         <!-- Page Header -->
         <div class="page-header">
             <h1>📅 My Attendance</h1>
-            <div class="header-info">
-                <div class="header-time"><?php echo $current_time; ?></div>
-                <div class="header-date"><?php echo $current_date; ?></div>
-            </div>
         </div>
 
         <!-- Welcome Banner -->
@@ -566,7 +588,10 @@ function getWorkingDaysInMonth($month) {
                 <span class="icon">✓</span>
                 <span>Go to Check In/Out</span>
             </a>
-        </div>
+            <!-- Current Time -->
+            <div class="current-time-display">
+                Current Time: <strong><?php echo date('g:i A'); ?></strong> | <?php echo date('l, F j, Y'); ?>
+            </div>
 
         <!-- Monthly Stats -->
         <div class="stats-grid">
@@ -641,7 +666,7 @@ function getWorkingDaysInMonth($month) {
                                     <td><?php echo $record['work_hours'] ? number_format($record['work_hours'], 2) . 'h' : '0.00h'; ?></td>
                                     <td>
                                         <span class="status-badge status-<?php echo $record['status']; ?>">
-                                            <?php echo ucfirst($record['status']); ?>
+                                            <?php echo ucfirst(str_replace('_', ' ', $record['status'])); ?>
                                         </span>
                                     </td>
                                 </tr>
@@ -692,7 +717,7 @@ function getWorkingDaysInMonth($month) {
                             <div class="status-item">
                                 <label>Status</label>
                                 <div class="value" style="font-size: 14px;">
-                                    <?php echo ucfirst($today_attendance['status']); ?>
+                                    <?php echo ucfirst(str_replace('_', ' ', $today_attendance['status'])); ?>
                                 </div>
                             </div>
                             <div class="status-item">
