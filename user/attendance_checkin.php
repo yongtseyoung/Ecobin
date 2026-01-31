@@ -1,15 +1,11 @@
 <?php
-/**
- * Employee Check-in/Check-out Page
- * GPS-based attendance tracking
- */
+
 
 session_start();
-date_default_timezone_set('Asia/Kuala_Lumpur'); // Malaysia timezone
+date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 require_once '../config/languages.php';
 
-// Check authentication - allow both admin and employee
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.php");
     exit;
@@ -18,14 +14,11 @@ if (!isset($_SESSION['user_id'])) {
 $user_type = $_SESSION['user_type'];
 $user_name = $_SESSION['full_name'] ?? 'User';
 
-// Set current page for sidebar
 $current_page = 'attendance';
 
-// Get employee ID
 if ($user_type === 'employee') {
     $employee_id = $_SESSION['user_id'];
 } else {
-    // Admin can check in for any employee
     $employee_id = $_GET['employee_id'] ?? null;
     if (!$employee_id) {
         $_SESSION['error'] = t('please_select_employee');
@@ -34,7 +27,6 @@ if ($user_type === 'employee') {
     }
 }
 
-// Get employee info
 $employee = getOne("SELECT * FROM employees WHERE employee_id = ?", [$employee_id]);
 if (!$employee) {
     $_SESSION['error'] = t('employee_not_found');
@@ -42,26 +34,21 @@ if (!$employee) {
     exit;
 }
 
-// Load language preference
 $_SESSION['language'] = $employee['language'] ?? 'en';
 
-// Check today's attendance record
 $today = date('Y-m-d');
 $attendance_today = getOne("SELECT * FROM attendance WHERE employee_id = ? AND attendance_date = ?", [$employee_id, $today]);
 
 $has_checked_in = $attendance_today && $attendance_today['check_in_time'];
 $has_checked_out = $attendance_today && $attendance_today['check_out_time'];
 
-// Get success/error messages
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
-// Current time
 $current_time = date('g:i A');
 $current_date = date('l, F j, Y');
 
-// ============ Determine current status for warning banner ============
 $current_hour = (int)date('H');
 $current_minute = (int)date('i');
 
@@ -70,26 +57,22 @@ $status_class = '';
 $requires_reason = false;
 
 if (!$has_checked_in) {
-    // Before 8:30 AM = ON TIME
     if ($current_hour < 8 || ($current_hour == 8 && $current_minute <= 30)) {
         $status_message = t('status_on_time');
         $status_class = 'alert-success';
         $requires_reason = false;
     } 
-    // 8:31 AM - 11:59 AM = LATE
     elseif ($current_hour < 12) {
         $status_message = t('status_late_arrival');
         $status_class = 'alert-warning';
         $requires_reason = true;
     } 
-    // After 12:00 PM = ABSENT
     else {
         $status_message = t('status_very_late');
         $status_class = 'alert-danger';
         $requires_reason = true;
     }
 }
-// ============ END ============
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $_SESSION['language']; ?>">
@@ -131,7 +114,6 @@ if (!$has_checked_in) {
         color: #435334;
     }
 
-    /* Back Button */
     .back-link {
         display: inline-flex;
         align-items: center;
@@ -150,7 +132,6 @@ if (!$has_checked_in) {
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
 
-    /* Main Container */
     .checkin-container {
         background: white;
         border-radius: 25px;
@@ -170,7 +151,6 @@ if (!$has_checked_in) {
         background: linear-gradient(90deg, #435334, #27ae60, #CEDEBD);
     }
 
-    /* Header */
     .header {
         text-align: center;
         margin-bottom: 35px;
@@ -201,7 +181,6 @@ if (!$has_checked_in) {
         font-weight: 600;
     }
 
-    /* Current Time Card */
     .current-info {
         background: linear-gradient(135deg, #435334 0%, #5a6f4a 100%);
         padding: 40px;
@@ -247,7 +226,6 @@ if (!$has_checked_in) {
         z-index: 1;
     }
 
-    /* Location Status */
     .location-status {
         padding: 18px 24px;
         border-radius: 15px;
@@ -292,7 +270,6 @@ if (!$has_checked_in) {
         }
     }
 
-    /* Alert Messages */
     .alert {
         padding: 18px 24px;
         border-radius: 15px;
@@ -331,7 +308,6 @@ if (!$has_checked_in) {
         border: 2px solid #f5c6cb;
     }
 
-    /* Status Card */
     .status-card {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         padding: 25px;
@@ -393,7 +369,6 @@ if (!$has_checked_in) {
         color: #27ae60;
     }
 
-    /* Action Buttons */
     .action-buttons {
         display: flex;
         flex-direction: column;
@@ -521,7 +496,6 @@ if (!$has_checked_in) {
         font-size: 28px;
     }
 
-    /* Reason Field Styles */
     .reason-field {
         margin-bottom: 20px;
         animation: slideIn 0.5s ease-out;
@@ -582,7 +556,6 @@ if (!$has_checked_in) {
         color: #721c24;
     }
 
-    /* Animations */
     @keyframes fadeInUp {
         from {
             opacity: 0;
@@ -598,7 +571,6 @@ if (!$has_checked_in) {
         animation: fadeInUp 0.6s ease-out;
     }
 
-    /* Loading Spinner for Location */
     .spinner {
         display: inline-block;
         width: 16px;
@@ -614,7 +586,6 @@ if (!$has_checked_in) {
         100% { transform: rotate(360deg); }
     }
 
-    /* Responsive Design */
     @media (max-width: 768px) {
         .main-content {
             margin-left: 0;
@@ -784,19 +755,16 @@ if (!$has_checked_in) {
         <div class="checkin-wrapper">
 
             <div class="checkin-container">
-                <!-- Header -->
                 <div class="header">
                     <h1><?php echo t('welcome'); ?>!</h1>
                     <div class="user-name"><?php echo htmlspecialchars($employee['full_name']); ?></div>
                 </div>
 
-                <!-- Current Time -->
                 <div class="current-info">
                     <div class="time" id="current-time"><?php echo $current_time; ?></div>
                     <div class="date"><?php echo $current_date; ?></div>
                 </div>
 
-                <!-- Alert Messages -->
                 <?php if ($success): ?>
                     <div class="alert alert-success">
                         <i class="fa-solid fa-circle-check" style="font-size: 20px;"></i>
@@ -811,7 +779,6 @@ if (!$has_checked_in) {
                     </div>
                 <?php endif; ?>
 
-                <!-- Status Warning Banner -->
                 <?php if (!$has_checked_in && $status_message): ?>
                     <div class="alert <?php echo $status_class; ?>">
                         <?php 
@@ -827,13 +794,11 @@ if (!$has_checked_in) {
                     </div>
                 <?php endif; ?>
 
-                <!-- Location Status -->
                 <div class="location-status location-detecting" id="location-status">
                     <span class="spinner"></span>
                     <span><?php echo t('detecting_location'); ?></span>
                 </div>
 
-                <!-- Today's Status -->
                 <?php if ($attendance_today): ?>
                     <div class="status-card">
                         <h3>
@@ -865,14 +830,12 @@ if (!$has_checked_in) {
                     </div>
                 <?php endif; ?>
 
-                <!-- Action Buttons -->
                 <div class="action-buttons">
                     <form id="checkin-form" method="POST" action="attendance_actions.php">
                         <input type="hidden" name="action" value="checkin">
                         <input type="hidden" name="employee_id" value="<?php echo $employee_id; ?>">
                         <input type="hidden" name="location" id="checkin-location">
                         
-                        <!-- Reason Field -->
                         <?php if (!$has_checked_in && $requires_reason): ?>
                             <div class="reason-field">
                                 <label>
@@ -928,18 +891,15 @@ if (!$has_checked_in) {
     </div>
 
     <script>
-        // Update time every second
         setInterval(() => {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
             document.getElementById('current-time').textContent = timeStr;
         }, 1000);
 
-        // GPS Location tracking
         let currentLocation = null;
         const locationStatus = document.getElementById('location-status');
 
-        // Translations for JavaScript
         const translations = {
             locationDetected: "<?php echo t('location_detected'); ?>",
             locationError: "<?php echo t('location_error'); ?>",
@@ -948,7 +908,6 @@ if (!$has_checked_in) {
             enableGPS: "<?php echo t('enable_gps_refresh'); ?>"
         };
 
-        // Get location on page load
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -970,7 +929,6 @@ if (!$has_checked_in) {
             locationStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="font-size: 20px;"></i><span>' + translations.geoNotSupported + '</span>';
         }
 
-        // Validate forms before submission
         document.getElementById('checkin-form').addEventListener('submit', (e) => {
             if (!document.getElementById('checkin-location').value) {
                 e.preventDefault();

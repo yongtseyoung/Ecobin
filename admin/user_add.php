@@ -1,27 +1,19 @@
 <?php
-/**
- * Add New User (Admin or Employee)
- */
 
 session_start();
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'users';
 
-// Get user type to add (default: employee)
 $user_type = $_GET['type'] ?? 'employee';
 
-// Get all areas for employee assignment
 $areas = getAll("SELECT area_id, area_name, block FROM areas ORDER BY area_name");
 
-// Get error messages
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['error']);
 ?>
@@ -47,7 +39,6 @@ unset($_SESSION['error']);
 
 
 
-        /* Main Content */
         .main-content {
             margin-left: 250px;
             flex: 1;
@@ -84,7 +75,6 @@ unset($_SESSION['error']);
             background: #f5f5f5;
         }
 
-        /* Type Selector */
         .type-selector {
             display: flex;
             gap: 10px;
@@ -113,7 +103,6 @@ unset($_SESSION['error']);
             color: white;
         }
 
-        /* Form Container */
         .form-container {
             background: white;
             border-radius: 15px;
@@ -199,7 +188,6 @@ unset($_SESSION['error']);
             border: 1px solid #f5c6cb;
         }
 
-        /* Form Actions */
         .form-actions {
             display: flex;
             gap: 10px;
@@ -238,7 +226,6 @@ unset($_SESSION['error']);
             background: #e0e0e0;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .main-content {
                 margin-left: 70px;
@@ -252,9 +239,7 @@ unset($_SESSION['error']);
 <body>
     <?php include '../includes/admin_sidebar.php'; ?>
     
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <h1>Add New User</h1>
             <a href="users.php" class="back-btn">
@@ -262,7 +247,6 @@ unset($_SESSION['error']);
             </a>
         </div>
 
-        <!-- Type Selector -->
         <div class="type-selector">
             <a href="?type=employee" class="type-btn <?php echo $user_type === 'employee' ? 'active' : ''; ?>">
                 Employee
@@ -272,7 +256,6 @@ unset($_SESSION['error']);
             </a>
         </div>
 
-        <!-- Form Container -->
         <div class="form-container">
             <?php if ($error): ?>
                 <div class="alert alert-error">
@@ -285,7 +268,6 @@ unset($_SESSION['error']);
                 <input type="hidden" name="action" value="create">
                 <input type="hidden" name="user_type" value="<?php echo htmlspecialchars($user_type); ?>">
 
-                <!-- Account Information -->
                 <div class="form-section">
                     <h3>Account Information</h3>
                     <div class="form-grid">
@@ -339,7 +321,6 @@ unset($_SESSION['error']);
                     </div>
                 </div>
 
-                <!-- Personal Information -->
                 <div class="form-section">
                     <h3>Personal Information</h3>
                     <div class="form-grid">
@@ -386,7 +367,6 @@ unset($_SESSION['error']);
                     </div>
                 </div>
 
-                <!-- Form Actions -->
                 <div class="form-actions">
                     <a href="users.php" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">

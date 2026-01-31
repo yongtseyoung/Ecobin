@@ -1,26 +1,16 @@
 <?php
-/**
- * IoT Data Receiver API
- * Receives sensor data from ESP32 devices and updates EcoBin database
- * 
- * Endpoint: POST http://localhost/ecobin/api/iot_receiver.php
- */
 
-// Set headers
 header('Content-Type: application/json');
 date_default_timezone_set('Asia/Kuala_Lumpur');
 
-// Include database connection
 require_once '../config/database.php';
 
-// Log function for debugging
 function logMessage($message) {
     $logFile = __DIR__ . '/iot_logs.txt';
     $timestamp = date('Y-m-d H:i:s');
     file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
 }
 
-// Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode([
@@ -31,14 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Get JSON data from ESP32
 $json = file_get_contents('php://input');
 logMessage("Received data: $json");
 
-// Decode JSON
 $data = json_decode($json, true);
 
-// Check if JSON is valid
 if ($data === null) {
     http_response_code(400);
     echo json_encode([
@@ -49,7 +36,6 @@ if ($data === null) {
     exit;
 }
 
-// Validate required fields
 $required = ['device_id', 'bin_code', 'fill_level'];
 foreach ($required as $field) {
     if (!isset($data[$field]) || $data[$field] === '') {
@@ -64,8 +50,7 @@ foreach ($required as $field) {
 }
 
 try {
-    // Extract data from JSON
-    $device_mac = $data['device_id']; // ESP32 MAC address
+    $device_mac = $data['device_id'];
     $bin_code = $data['bin_code'];
     $fill_level = floatval($data['fill_level']);
     $weight = isset($data['weight']) ? floatval($data['weight']) : null;
@@ -78,7 +63,6 @@ try {
     
     logMessage("Processing data for device: $device_mac, bin: $bin_code, fill: $fill_level%");
     
-    //Find or create bin
     $bin = getOne("SELECT bin_id, area_id FROM bins WHERE bin_code = ?", [$bin_code]);
     
     if (!$bin) {
@@ -96,11 +80,9 @@ try {
     
     logMessage("Found bin_id: $bin_id");
     
-    //Register or update IoT device
     $device = getOne("SELECT device_id FROM iot_devices WHERE device_mac_address = ?", [$device_mac]);
     
     if (!$device) {
-        // Register new device
         logMessage("Registering new device: $device_mac");
         
         query("
@@ -112,14 +94,12 @@ try {
         
         $device_db_id = getOne("SELECT LAST_INSERT_ID() as id")['id'];
         
-        // Link device to bin
         query("UPDATE bins SET device_id = ? WHERE bin_id = ?", [$device_db_id, $bin_id]);
         
         logMessage("Device registered with ID: $device_db_id");
     } else {
         $device_db_id = $device['device_id'];
         
-        // Update existing device
         query("
             UPDATE iot_devices 
             SET last_ping = NOW(), 
@@ -132,7 +112,6 @@ try {
         logMessage("Updated device ID: $device_db_id");
     }
     
-    //Determine bin status
     $status = 'normal';
     if ($fill_level >= 95) {
         $status = 'full';
@@ -144,7 +123,6 @@ try {
     
     logMessage("Bin status determined: $status");
     
-    //Update bin data
     query("
         UPDATE bins 
         SET current_fill_level = ?,
@@ -171,13 +149,11 @@ try {
     
     logMessage("Bin updated: fill=$fill_level%, weight=$weight kg, status=$status");
     
-    // Update last_opened if lid was opened
     if ($lid_status === 'open') {
         query("UPDATE bins SET last_opened = NOW() WHERE bin_id = ?", [$bin_id]);
         logMessage("Lid opened timestamp updated");
     }
     
-    //Log sensor reading
     query("
         INSERT INTO sensor_readings
         (device_id, bin_id, fill_level, weight, distance, battery_voltage, 
@@ -198,12 +174,10 @@ try {
     
     logMessage("Sensor reading logged");
     
-    //Auto-create task if bin >= 80% full
     $task_created = false;
     if ($fill_level >= 80) {
         logMessage("Fill level >= 80%, checking for existing tasks...");
         
-        // Check if task already exists for this bin
         $existing_task = getOne("
             SELECT task_id FROM tasks 
             WHERE triggered_by_bin = ? 
@@ -213,7 +187,6 @@ try {
         if (!$existing_task) {
             logMessage("No existing task found, creating new task...");
             
-            // Get bin details
             $bin_details = getOne("
                 SELECT b.*, a.area_name 
                 FROM bins b
@@ -221,7 +194,6 @@ try {
                 WHERE b.bin_id = ?
             ", [$bin_id]);
             
-            // Get assigned employee for this area
             $employee = getOne("
                 SELECT employee_id FROM employees 
                 WHERE area_id = ? AND status = 'active' 
@@ -230,15 +202,12 @@ try {
             ", [$area_id]);
             
             if ($employee) {
-                // Determine priority
                 $priority = $fill_level >= 95 ? 'urgent' : 'high';
                 
-                // Create task title
                 $title = $fill_level >= 95 
                     ? "URGENT: Collect Bin $bin_code (OVERFLOWING {$fill_level}%)"
                     : "Collect Bin $bin_code ({$fill_level}% full)";
                 
-                // Create description
                 $description = "Auto-generated collection task triggered by IoT sensor.\n";
                 $description .= "Location: {$bin_details['location_details']}\n";
                 $description .= "Fill Level: {$fill_level}%\n";
@@ -246,7 +215,6 @@ try {
                 if ($battery) $description .= "Battery: {$battery}%\n";
                 if ($gps_lat && $gps_lng) $description .= "GPS: {$gps_lat}, {$gps_lng}";
                 
-                // Get admin (creator)
                 $admin = getOne("SELECT admin_id FROM admins WHERE status = 'active' LIMIT 1");
                 
                 if ($admin) {
@@ -278,7 +246,6 @@ try {
         }
     }
     
-    //Success response
     http_response_code(200);
     $response = [
         'status' => 'success',

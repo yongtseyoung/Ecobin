@@ -1,20 +1,14 @@
 <?php
-/**
- * Add New Inventory Item
- * Form for admins to add new items to inventory
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication - admins only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'inventory';
 
 $error = $_SESSION['error'] ?? '';
@@ -250,7 +244,6 @@ unset($_SESSION['error']);
     </main>
 
     <script>
-        // Auto-calculate status based on quantity
         const currentQty = document.querySelector('input[name="current_quantity"]');
         const minQty = document.querySelector('input[name="minimum_quantity"]');
 
@@ -258,7 +251,6 @@ unset($_SESSION['error']);
             const current = parseInt(currentQty.value) || 0;
             const minimum = parseInt(minQty.value) || 0;
 
-            // Visual feedback (optional)
             if (current === 0) {
                 currentQty.style.borderColor = '#dc3545';
             } else if (current <= minimum) {

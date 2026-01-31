@@ -1,28 +1,20 @@
 <?php
-/**
- * Leave Calendar
- * View team leave schedule in calendar format
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication - admins only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'leave';
 
-// Get current month or selected month
 $selected_month = $_GET['month'] ?? date('Y-m');
 $month_start = $selected_month . '-01';
 $month_end = date('Y-m-t', strtotime($month_start));
 
-// Get leave requests for this month
 $leave_requests = getAll("SELECT lr.*, e.full_name, lt.type_name, lt.color_code
                           FROM leave_requests lr
                           JOIN employees e ON lr.employee_id = e.employee_id
@@ -36,7 +28,6 @@ $leave_requests = getAll("SELECT lr.*, e.full_name, lt.type_name, lt.color_code
                           ORDER BY lr.start_date",
                           [$month_start, $month_end, $month_start, $month_end, $month_start, $month_end]);
 
-// Group leave by date
 $leave_by_date = [];
 foreach ($leave_requests as $leave) {
     $start = new DateTime($leave['start_date']);
@@ -257,7 +248,6 @@ foreach ($leave_requests as $leave) {
             </h2>
 
             <?php
-            // Generate calendar
             $first_day = new DateTime($month_start);
             $last_day = new DateTime($month_end);
             $days_in_month = $last_day->format('d');
@@ -275,12 +265,10 @@ foreach ($leave_requests as $leave) {
                 <div class="calendar-header">Sat</div>
 
                 <?php
-                // Empty cells before first day
                 for ($i = 0; $i < $start_weekday; $i++) {
                     echo '<div class="calendar-day other-month"></div>';
                 }
 
-                // Days of month
                 for ($day = 1; $day <= $days_in_month; $day++) {
                     $date = sprintf('%s-%02d', $selected_month, $day);
                     $is_today = ($date === $today);
@@ -289,7 +277,6 @@ foreach ($leave_requests as $leave) {
                     echo '<div class="' . $class . '">';
                     echo '<div class="day-number">' . $day . '</div>';
                     
-                    // Show leave for this day
                     if (isset($leave_by_date[$date])) {
                         $shown = [];
                         foreach ($leave_by_date[$date] as $leave) {
@@ -306,7 +293,6 @@ foreach ($leave_requests as $leave) {
                     echo '</div>';
                 }
 
-                // Empty cells after last day
                 $total_cells = $start_weekday + $days_in_month;
                 $remaining = (7 - ($total_cells % 7)) % 7;
                 for ($i = 0; $i < $remaining; $i++) {

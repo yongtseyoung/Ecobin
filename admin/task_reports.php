@@ -1,51 +1,39 @@
 <?php
-/**
- * Task Reports & Analytics
- * Performance metrics and task statistics
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Get date range filter
-$start_date = $_GET['start_date'] ?? date('Y-m-01'); // First day of current month
+$start_date = $_GET['start_date'] ?? date('Y-m-01');
 $end_date = $_GET['end_date'] ?? date('Y-m-d');
 
-// Set current page for sidebar
 $current_page = 'tasks';
 
-// Overall statistics
 $total_tasks = getOne("SELECT COUNT(*) as count FROM tasks WHERE DATE(created_at) BETWEEN ? AND ?", [$start_date, $end_date])['count'];
 $completed_tasks = getOne("SELECT COUNT(*) as count FROM tasks WHERE status = 'completed' AND DATE(completed_at) BETWEEN ? AND ?", [$start_date, $end_date])['count'];
 $pending_tasks = getOne("SELECT COUNT(*) as count FROM tasks WHERE status = 'pending'")['count'];
 $in_progress_tasks = getOne("SELECT COUNT(*) as count FROM tasks WHERE status = 'in_progress'")['count'];
 $auto_generated = getOne("SELECT COUNT(*) as count FROM tasks WHERE is_auto_generated = 1 AND DATE(created_at) BETWEEN ? AND ?", [$start_date, $end_date])['count'];
 
-// Completion rate
 $completion_rate = $total_tasks > 0 ? round(($completed_tasks / $total_tasks) * 100, 1) : 0;
 
-// Tasks by type
 $by_type = getAll("SELECT task_type, COUNT(*) as count 
                    FROM tasks 
                    WHERE DATE(created_at) BETWEEN ? AND ?
                    GROUP BY task_type 
                    ORDER BY count DESC", [$start_date, $end_date]);
 
-// Tasks by priority
 $by_priority = getAll("SELECT priority, COUNT(*) as count 
                        FROM tasks 
                        WHERE DATE(created_at) BETWEEN ? AND ?
                        GROUP BY priority 
                        ORDER BY FIELD(priority, 'urgent', 'high', 'medium', 'low')", [$start_date, $end_date]);
 
-// Employee performance
 $employee_stats = getAll("SELECT 
                           e.full_name,
                           COUNT(t.task_id) as total_tasks,
@@ -64,7 +52,6 @@ $employee_stats = getAll("SELECT
                           GROUP BY e.employee_id, e.full_name
                           ORDER BY completed DESC", [$start_date, $end_date]);
 
-// Recent completed tasks
 $recent_completed = getAll("SELECT t.*, e.full_name as employee_name
                             FROM tasks t
                             LEFT JOIN employees e ON t.assigned_to = e.employee_id
@@ -73,7 +60,6 @@ $recent_completed = getAll("SELECT t.*, e.full_name as employee_name
                             ORDER BY t.completed_at DESC
                             LIMIT 10", [$start_date, $end_date]);
 
-// Tasks by area
 $by_area = getAll("SELECT 
                    a.area_name,
                    a.block,
@@ -339,7 +325,6 @@ $by_area = getAll("SELECT
             font-weight: 600;
         }
 
-        /* Print Styles */
         @media print {
             body {
                 background: white;

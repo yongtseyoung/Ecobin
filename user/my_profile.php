@@ -1,15 +1,10 @@
 <?php
-/**
- * Employee Profile Page
- * View and edit employee profile information with profile picture upload and language settings
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 require_once '../config/languages.php';
 
-// Check employee authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     header("Location: ../login.php");
     exit;
@@ -18,7 +13,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
 $employee_id = $_SESSION['user_id'];
 $current_page = 'profile';
 
-// Get employee data
 $employee = getOne("
     SELECT e.*, a.area_name 
     FROM employees e
@@ -31,25 +25,19 @@ if (!$employee) {
     exit;
 }
 
-// Load language preference from database
 $_SESSION['language'] = $employee['language'] ?? 'en';
 
-// Handle language update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_language'])) {
     $language = $_POST['language'] ?? 'en';
     
-    // Validate language
     if (!in_array($language, ['en', 'ms'])) {
         $language = 'en';
     }
     
-    // Update database
     query("UPDATE employees SET language = ? WHERE employee_id = ?", [$language, $employee_id]);
     
-    // Update session
     $_SESSION['language'] = $language;
     
-    // Success message in selected language
     $messages = [
         'en' => 'Language updated successfully! The system interface has been changed.',
         'ms' => 'Bahasa berjaya dikemaskini! Antara muka sistem telah ditukar.'
@@ -57,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_language'])) {
     
     $_SESSION['success'] = $messages[$language];
     
-    // Refresh employee data
     $employee = getOne("
         SELECT e.*, a.area_name 
         FROM employees e
@@ -69,7 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_language'])) {
     exit;
 }
 
-// Handle profile picture upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_picture'])) {
     if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === 0) {
         $allowed = ['jpg', 'jpeg', 'png', 'gif'];
@@ -77,40 +63,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_picture'])) {
         $filetype = $_FILES['profile_picture']['type'];
         $filesize = $_FILES['profile_picture']['size'];
         
-        // Get file extension
         $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         
-        // Validate file
         if (!in_array($ext, $allowed)) {
             $_SESSION['error'] = t('invalid_file_type');
-        } elseif ($filesize > 5242880) { // 5MB limit
+        } elseif ($filesize > 5242880) { 
             $_SESSION['error'] = t('file_too_large');
         } else {
-            // Create uploads directory if it doesn't exist
             $upload_dir = '../uploads/profiles/';
             if (!file_exists($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
             }
             
-            // Delete old profile picture if exists
             if ($employee['profile_picture'] && file_exists('../' . $employee['profile_picture'])) {
                 unlink('../' . $employee['profile_picture']);
             }
             
-            // Generate unique filename
             $new_filename = 'employee_' . $employee_id . '_' . time() . '.' . $ext;
             $upload_path = $upload_dir . $new_filename;
             
-            // Move uploaded file
             if (move_uploaded_file($_FILES['profile_picture']['tmp_name'], $upload_path)) {
-                // Update database
                 $db_path = 'uploads/profiles/' . $new_filename;
                 $updated = query("UPDATE employees SET profile_picture = ? WHERE employee_id = ?", [$db_path, $employee_id]);
                 
                 if ($updated) {
                     $_SESSION['success'] = t('profile_picture_updated');
                     
-                    // Refresh employee data
                     $employee = getOne("
                         SELECT e.*, a.area_name 
                         FROM employees e
@@ -132,23 +110,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_picture'])) {
     exit;
 }
 
-// Handle profile update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     $full_name = trim($_POST['full_name']);
     $email = trim($_POST['email']);
     $phone_number = trim($_POST['phone_number']);
     
-    // Validate inputs
     if (empty($full_name) || empty($email)) {
         $_SESSION['error'] = t('please_fill_required_fields');
     } else {
-        // Check if email is taken by another user
         $existing = getOne("SELECT employee_id FROM employees WHERE email = ? AND employee_id != ?", [$email, $employee_id]);
         
         if ($existing) {
             $_SESSION['error'] = t('email_already_used');
         } else {
-            // Update profile
             $updated = query("
                 UPDATE employees 
                 SET full_name = ?, email = ?, phone_number = ?
@@ -157,9 +131,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
             
             if ($updated) {
                 $_SESSION['success'] = t('profile_updated');
-                $_SESSION['full_name'] = $full_name; // Update session
+                $_SESSION['full_name'] = $full_name; 
                 
-                // Refresh employee data
                 $employee = getOne("
                     SELECT e.*, a.area_name 
                     FROM employees e
@@ -176,13 +149,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     exit;
 }
 
-// Handle password change
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     $current_password = $_POST['current_password'];
     $new_password = $_POST['new_password'];
     $confirm_password = $_POST['confirm_password'];
     
-    // Validate
     if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
         $_SESSION['error'] = t('all_fields_required');
     } elseif ($new_password !== $confirm_password) {
@@ -192,7 +163,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     } elseif ($employee['password'] !== $current_password) {
         $_SESSION['error'] = t('current_password_incorrect');
     } else {
-        // Update password
         $updated = query("UPDATE employees SET password = ? WHERE employee_id = ?", [$new_password, $employee_id]);
         
         if ($updated) {
@@ -210,7 +180,6 @@ $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
-// Get current date info
 $current_time = date('g:i A');
 $current_date = date('l, F j, Y');
 ?>
@@ -243,7 +212,6 @@ $current_date = date('l, F j, Y');
             max-width: 1400px;
         }
 
-        /* Page Header */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -273,7 +241,6 @@ $current_date = date('l, F j, Y');
             color: #999;
         }
 
-        /* Alert Messages */
         .alert {
             padding: 15px 20px;
             border-radius: 10px;
@@ -310,7 +277,6 @@ $current_date = date('l, F j, Y');
             border-left: 4px solid #dc3545;
         }
 
-        /* Profile Layout */
         .profile-container {
             display: grid;
             grid-template-columns: 350px 1fr;
@@ -318,7 +284,6 @@ $current_date = date('l, F j, Y');
             margin-bottom: 30px;
         }
 
-        /* Profile Card */
         .profile-card {
             background: white;
             border-radius: 15px;
@@ -451,14 +416,12 @@ $current_date = date('l, F j, Y');
             color: #721c24;
         }
 
-        /* Forms Container */
         .forms-container {
             display: flex;
             flex-direction: column;
             gap: 30px;
         }
 
-        /* Form Section */
         .form-section {
             background: white;
             border-radius: 15px;
@@ -554,7 +517,6 @@ $current_date = date('l, F j, Y');
             border-left: 4px solid #CEDEBD;
         }
 
-        /* Language Settings */
         .language-options {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -619,7 +581,6 @@ $current_date = date('l, F j, Y');
             color: #666;
         }
 
-/* Responsive */
         @media (max-width: 1200px) {
             .profile-container {
                 grid-template-columns: 1fr;
@@ -924,7 +885,6 @@ $current_date = date('l, F j, Y');
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <h1>
                 <?php echo t('my_profile'); ?>
@@ -935,7 +895,6 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Alert Messages -->
         <?php if ($success): ?>
             <div class="alert alert-success">
                 <i class="fa-solid fa-check-circle"></i>
@@ -950,9 +909,7 @@ $current_date = date('l, F j, Y');
             </div>
         <?php endif; ?>
 
-        <!-- Profile Container -->
         <div class="profile-container">
-            <!-- Left Column: Profile Card -->
             <div class="profile-card">
                 <div class="profile-avatar-container">
                     <div class="profile-avatar">
@@ -1027,9 +984,7 @@ $current_date = date('l, F j, Y');
                 </div>
             </div>
 
-            <!-- Right Column: Forms -->
             <div class="forms-container">
-                <!-- Language Settings Form -->
                 <div class="form-section">
                     <h2>
                         <i class="fa-solid fa-language"></i>
@@ -1041,7 +996,6 @@ $current_date = date('l, F j, Y');
                         <input type="hidden" name="update_language">
                         
                         <div class="language-options">
-                            <!-- English -->
                             <div class="language-card <?php echo $employee['language'] === 'en' ? 'active' : ''; ?>" 
                                  onclick="selectLanguage('en')">
                                 <div class="language-flag">🇬🇧</div>
@@ -1052,7 +1006,6 @@ $current_date = date('l, F j, Y');
                                        style="display: none;">
                             </div>
 
-                            <!-- Malay -->
                             <div class="language-card <?php echo $employee['language'] === 'ms' ? 'active' : ''; ?>" 
                                  onclick="selectLanguage('ms')">
                                 <div class="language-flag">🇲🇾</div>
@@ -1065,7 +1018,6 @@ $current_date = date('l, F j, Y');
                         </div>
                     </form>
 
-                <!-- Edit Profile Form -->
                 <div class="form-section">
                     <h2>
                         <i class="fa-solid fa-user-edit"></i>
@@ -1108,7 +1060,6 @@ $current_date = date('l, F j, Y');
                     </form>
                 </div>
 
-                <!-- Change Password Form -->
                 <div class="form-section">
                     <h2>
                         <i class="fa-solid fa-key"></i>
@@ -1144,20 +1095,16 @@ $current_date = date('l, F j, Y');
 
     <script>
         function selectLanguage(lang) {
-            // Update radio button
             document.querySelector('input[value="' + lang + '"]').checked = true;
             
-            // Update visual selection
             document.querySelectorAll('.language-card').forEach(card => {
                 card.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
             
-            // Auto-submit form
             document.getElementById('languageForm').submit();
         }
 
-        // Auto-hide success message after 3 seconds
         <?php if ($success): ?>
         setTimeout(() => {
             const alert = document.querySelector('.alert-success');

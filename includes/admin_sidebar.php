@@ -1,23 +1,12 @@
 <?php
-/**
- * Admin Sidebar Navigation - EcoBin Theme
- * Include this file in all admin pages
- * 
- * Required variables before including:
- * - $_SESSION['user_id'] - Admin ID
- * - $_SESSION['full_name'] - Admin full name
- * - $current_page (optional) - Current page identifier for active state
- */
 
-// Get admin name
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
-$current_page = $current_page ?? ''; // Set this variable in each page before including sidebar
+$current_page = $current_page ?? '';
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-    /* Sidebar Styles */
     .sidebar {
         width: 250px;
         background: #435334;

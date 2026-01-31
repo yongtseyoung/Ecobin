@@ -1,36 +1,27 @@
 <?php
-/**
- * Waste Analytics Reports
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'reports';
 
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
-// Get report type
 $report_type = $_GET['type'] ?? 'summary';
 
-// Get date range
 $start_date = $_GET['start_date'] ?? date('Y-m-01');
 $end_date = $_GET['end_date'] ?? date('Y-m-t');
 
-// Get success/error messages
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
-// Function to generate report data based on type
 function generateReportData($type, $start_date, $end_date) {
     $data = [];
     
@@ -168,13 +159,11 @@ function generateReportData($type, $start_date, $end_date) {
     return $data;
 }
 
-// Generate report if requested
 $report_data = null;
 if (isset($_GET['generate'])) {
     $report_data = generateReportData($report_type, $start_date, $end_date);
 }
 
-// Export to CSV
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $report_data = generateReportData($report_type, $start_date, $end_date);
     
@@ -183,7 +172,6 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     
     $output = fopen('php://output', 'w');
     
-    // Write CSV based on report type
     switch($report_type) {
         case 'summary':
             fputcsv($output, ['Waste Collection Summary Report']);
@@ -265,7 +253,6 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit;
 }
 
-// Get current date info
 $current_time = date('g:i A');
 $current_date = date('l, F j, Y');
 ?>
@@ -296,7 +283,6 @@ $current_date = date('l, F j, Y');
             padding: 30px;
         }
 
-        /* Page Header */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -360,7 +346,6 @@ $current_date = date('l, F j, Y');
             background: #b8ceaa;
         }
 
-        /* Report Generator Card */
         .generator-card {
             background: white;
             padding: 30px;
@@ -408,7 +393,6 @@ $current_date = date('l, F j, Y');
             border-color: #CEDEBD;
         }
 
-        /* Report Display */
         .report-display {
             background: white;
             padding: 40px;
@@ -543,7 +527,6 @@ $current_date = date('l, F j, Y');
             opacity: 0.9;
         }
 
-        /* Print Styles */
         @media print {
             .sidebar,
             .page-header,
@@ -563,7 +546,6 @@ $current_date = date('l, F j, Y');
             }
         }
 
-        /* Responsive */
         @media (max-width: 1200px) {
             .form-grid {
                 grid-template-columns: 1fr 1fr;
@@ -598,7 +580,6 @@ $current_date = date('l, F j, Y');
     <?php include '../includes/admin_sidebar.php'; ?>
 
     <div class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <div>
                 <h1>Analytics Reports</h1>
@@ -615,7 +596,6 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Report Generator -->
         <div class="generator-card">
             <h2>Generate Report</h2>
             <form method="GET" action="">
@@ -655,10 +635,8 @@ $current_date = date('l, F j, Y');
             </form>
         </div>
 
-        <!-- Report Display -->
         <?php if ($report_data): ?>
             <div class="report-display">
-                <!-- Report Header -->
                 <div class="report-header">
                     <h2><?php echo $report_data['title']; ?></h2>
                     <div class="report-meta">
@@ -670,9 +648,7 @@ $current_date = date('l, F j, Y');
                     </div>
                 </div>
 
-                <!-- Report Content Based on Type -->
                 <?php if ($report_type === 'summary'): ?>
-                    <!-- Summary Report -->
                     <div class="report-section">
                         <h3>Overview Statistics</h3>
                         <div class="stats-row">
@@ -720,7 +696,6 @@ $current_date = date('l, F j, Y');
                     </div>
 
                 <?php elseif ($report_type === 'performance'): ?>
-                    <!-- Performance Report -->
                     <div class="report-section">
                         <h3>Employee Performance</h3>
                         <table class="data-table">
@@ -753,7 +728,6 @@ $current_date = date('l, F j, Y');
                     </div>
 
                 <?php elseif ($report_type === 'bins'): ?>
-                    <!-- Bin Performance Report -->
                     <div class="report-section">
                         <h3>Bin Performance</h3>
                         <table class="data-table">
@@ -811,7 +785,6 @@ $current_date = date('l, F j, Y');
                     <?php endif; ?>
 
                 <?php elseif ($report_type === 'detailed'): ?>
-                    <!-- Detailed Collections Report -->
                     <div class="report-section">
                         <h3>Detailed Collection Records</h3>
                         <table class="data-table">
@@ -847,7 +820,6 @@ $current_date = date('l, F j, Y');
             </div>
 
         <?php else: ?>
-            <!-- Empty State -->
             <div class="empty-state">
                 <h3>No Report Generated</h3>
                 <p>Select report parameters above and click "Generate Report"</p>

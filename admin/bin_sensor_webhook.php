@@ -1,74 +1,53 @@
 <?php
-/**
- * Bin Sensor Webhook
- * Receives data from ESP32 IoT bins and auto-creates collection tasks
- * MODIFIED: Includes smart scheduled_date based on time of day
- */
+
 
 date_default_timezone_set('Asia/Kuala_Lumpur');
 header('Content-Type: application/json');
 
-// Include database connection
 require_once '../config/database.php';
 
-// Log function for debugging
 function log_message($message) {
     $log_file = __DIR__ . '/bin_webhook_log.txt';
     $timestamp = date('Y-m-d H:i:s');
     file_put_contents($log_file, "[$timestamp] $message\n", FILE_APPEND);
 }
 
-/**
- * Calculate fair scheduled_date based on creation time and priority
- * This ensures employees aren't penalized for overnight tasks
- */
+
 function calculate_scheduled_date($priority, $fill_level) {
-    $current_hour = intval(date('H')); // 0-23
+    $current_hour = intval(date('H'));
     $current_date = date('Y-m-d');
     
-    // Define work hours: 8 AM - 5 PM
     $work_start = 8;
     $work_end = 17;
     
-    // Check if within work hours
     $during_work_hours = ($current_hour >= $work_start && $current_hour < $work_end);
     
-    // URGENT PRIORITY (95%+ full)
     if ($priority === 'urgent' || $fill_level >= 95) {
         if ($during_work_hours) {
-            // Urgent during work hours = same day
             return $current_date;
         } else {
-            // Urgent overnight = next working day (same day, employee handles in morning)
             return $current_date;
         }
     }
     
-    // HIGH PRIORITY (80-94% full)
     elseif ($priority === 'high' || $fill_level >= 80) {
         if ($during_work_hours) {
-            // High priority during work hours = same day
             return $current_date;
         } else {
-            // High priority overnight = same day (handle in morning)
             return $current_date;
         }
     }
     
-    // MEDIUM/LOW PRIORITY
     else {
         if ($during_work_hours) {
-            // Medium during work hours = same day or next day
             return date('Y-m-d', strtotime('+1 day'));
         } else {
-            // Medium overnight = next day
             return date('Y-m-d', strtotime('+1 day'));
         }
     }
 }
 
 try {
-    // Get JSON data from ESP32
     $json = file_get_contents('php://input');
     
     if (empty($json)) {
@@ -77,19 +56,16 @@ try {
 
     log_message("Received data: $json");
 
-    // Parse JSON
     $data = json_decode($json, true);
 
     if (!$data) {
         throw new Exception('Invalid JSON format');
     }
 
-    // Validate required fields
     if (!isset($data['bin_id'])) {
         throw new Exception('bin_id is required');
     }
 
-    // Extract data with defaults
     $bin_id = intval($data['bin_id']);
     $fill_level = floatval($data['fill_level'] ?? 0);
     $distance = floatval($data['distance'] ?? null);
@@ -101,24 +77,21 @@ try {
     $last_opened = $data['last_opened'] ?? null;
     $temperature = floatval($data['temperature'] ?? null);
 
-    // Verify bin exists
     $bin = getOne("SELECT * FROM bins WHERE bin_id = ?", [$bin_id]);
     
     if (!$bin) {
         throw new Exception("Bin ID $bin_id not found in database");
     }
 
-    // Determine bin status based on fill level
     $bin_status = 'normal';
     if ($fill_level >= 95) {
         $bin_status = 'full';
     } elseif ($fill_level >= 80) {
-        $bin_status = 'full'; // Will trigger task
+        $bin_status = 'full'; 
     } elseif ($fill_level >= 60) {
         $bin_status = 'normal';
     }
 
-    // Update bins table - only update columns that exist
     $sql = "UPDATE bins SET 
             current_fill_level = ?,
             battery_level = ?,
@@ -143,7 +116,6 @@ try {
 
     log_message("Updated bin $bin_id: fill_level=$fill_level%, battery=$battery_percentage%, status=$bin_status");
 
-    // Update IoT device last_ping if device exists
     if (isset($bin['device_id']) && $bin['device_id']) {
         try {
             query("UPDATE iot_devices SET 
@@ -158,12 +130,10 @@ try {
         }
     }
 
-    // AUTO-CREATE TASK if fill level >= 80% and no active task exists
     $task_created = false;
     $task_id = null;
 
     if ($fill_level >= 80) {
-        // Check if there's already an active task for this bin
         $existing_task = getOne("SELECT * FROM tasks 
                                  WHERE triggered_by_bin = ? 
                                  AND status IN ('pending', 'in_progress')
@@ -172,7 +142,6 @@ try {
                                  [$bin_id]);
 
         if (!$existing_task) {
-            // Find employee assigned to this bin's area
             $employee = getOne("SELECT employee_id, full_name 
                                FROM employees 
                                WHERE area_id = ? 
@@ -182,11 +151,9 @@ try {
                                [$bin['area_id']]);
 
             if ($employee) {
-                // Get first admin (system user) for created_by
                 $system_admin = getOne("SELECT admin_id FROM admins ORDER BY admin_id LIMIT 1");
                 $created_by_admin = $system_admin ? $system_admin['admin_id'] : 1; // Fallback to 1 if no admin found
 
-                // Determine priority based on fill level
                 if ($fill_level >= 95) {
                     $priority = 'urgent';
                     $task_title = "URGENT: Collect Bin {$bin['bin_code']} (OVERFLOWING {$fill_level}%)";
@@ -198,14 +165,11 @@ try {
                     $task_title = "Collect Bin {$bin['bin_code']} ({$fill_level}% full)";
                 }
 
-                // SMART SCHEDULING: Calculate fair scheduled_date based on time and priority
                 $scheduled_date = calculate_scheduled_date($priority, $fill_level);
                 $current_hour = intval(date('H'));
                 
-                // Log scheduling decision for transparency
                 log_message("Task scheduling: created at " . date('H:i') . ", priority=$priority, fill=$fill_level%, scheduled_date=$scheduled_date");
 
-                // Create auto-generated task with smart scheduled_date
                 $sql = "INSERT INTO tasks (
                             task_title, task_type, priority, status,
                             assigned_to, area_id, triggered_by_bin,
@@ -229,7 +193,7 @@ try {
                         $employee['employee_id'],
                         $bin['area_id'],
                         $bin_id,
-                        $scheduled_date,  // Smart scheduled date
+                        $scheduled_date,  
                         $description,
                         $created_by_admin
                     ]);
@@ -251,14 +215,12 @@ try {
         }
     }
 
-    // Check for low battery warning
     $battery_warning = false;
     if ($battery_percentage < 20) {
         log_message("WARNING: Low battery for bin $bin_id - {$battery_percentage}%");
         $battery_warning = true;
     }
 
-    // Success response
     $response = [
         'success' => true,
         'message' => 'Data received and processed successfully',

@@ -1,14 +1,9 @@
 <?php
-/**
- * Task Details View
- * View complete task information including timeline and notes
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
@@ -16,7 +11,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
 
 $task_id = $_GET['id'] ?? 0;
 
-// Get task details with related information
 $task = getOne("SELECT t.*, 
                 e.full_name as employee_name,
                 e.username as employee_username,
@@ -42,13 +36,11 @@ if (!$task) {
     exit;
 }
 
-// Get task bins (for collection tasks with multiple bins)
 $task_bins = getAll("SELECT tb.*, b.bin_code, b.location_details, b.current_fill_level
                      FROM task_bins tb
                      LEFT JOIN bins b ON tb.bin_id = b.bin_id
                      WHERE tb.task_id = ?", [$task_id]);
 
-// Calculate task duration
 $duration = null;
 if ($task['started_at'] && $task['completed_at']) {
     $start = new DateTime($task['started_at']);
@@ -552,7 +544,6 @@ if ($task['started_at'] && $task['completed_at']) {
 
         <div class="content-grid">
             <div>
-                <!-- Task Details Card -->
                 <div class="card">
                     <h2>📋 Task Information</h2>
                     
@@ -628,7 +619,6 @@ if ($task['started_at'] && $task['completed_at']) {
                     </div>
                 </div>
 
-                <!-- Task Timeline -->
                 <div class="card">
                     <h2>⏱️ Task Timeline</h2>
                     <div class="timeline">
@@ -701,7 +691,6 @@ if ($task['started_at'] && $task['completed_at']) {
                     </div>
                 </div>
 
-                <!-- Bin Collection Details -->
                 <?php if (!empty($task_bins)): ?>
                     <div class="card">
                         <h2>🗑️ Bins for Collection</h2>
@@ -725,7 +714,6 @@ if ($task['started_at'] && $task['completed_at']) {
             </div>
 
             <div>
-                <!-- Quick Stats -->
                 <?php if ($task['status'] === 'completed' && !empty($task_bins)): ?>
                     <div class="card">
                         <h2>📊 Collection Stats</h2>
@@ -747,7 +735,6 @@ if ($task['started_at'] && $task['completed_at']) {
                     </div>
                 <?php endif; ?>
 
-                <!-- GPS Location -->
                 <?php if ($task['gps_latitude'] && $task['gps_longitude']): ?>
                     <div class="card">
                         <h2>📍 Bin Location</h2>
@@ -774,7 +761,6 @@ if ($task['started_at'] && $task['completed_at']) {
                     </div>
                 <?php endif; ?>
 
-                <!-- Quick Actions -->
                 <?php if ($task['status'] !== 'completed' && $task['status'] !== 'cancelled'): ?>
                     <div class="card">
                         <h2>⚡ Quick Actions</h2>

@@ -1,27 +1,20 @@
 <?php
-/**
- * Employee Supply Requests
- * View and manage supply requests that require admin approval
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 require_once '../config/languages.php';
 
-// Check authentication - employees only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'inventory';
 
 $employee_id = $_SESSION['user_id'];
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
 
-// Get employee details and load language preference
 $employee = getOne("SELECT e.*, a.area_name 
                     FROM employees e 
                     LEFT JOIN areas a ON e.area_id = a.area_id 
@@ -29,16 +22,12 @@ $employee = getOne("SELECT e.*, a.area_name
                     [$employee_id]);
 
 
-// Get active tab
 $active_tab = $_GET['tab'] ?? 'my-requests';
 
-// Get available inventory items for request form
 $available_items = getAll("SELECT * FROM inventory WHERE status IN ('in_stock', 'low_stock') ORDER BY item_name");
 
-// Get filter for requests
 $status_filter = $_GET['status'] ?? 'all';
 
-// Build query for my requests
 $where = ["sr.employee_id = ?"];
 $params = [$employee_id];
 
@@ -49,7 +38,6 @@ if ($status_filter !== 'all') {
 
 $where_clause = implode(" AND ", $where);
 
-// Get employee's supply requests (exclude self-service takes)
 $my_requests = getAll("
     SELECT 
         sr.*,
@@ -64,7 +52,6 @@ $my_requests = getAll("
     ORDER BY sr.requested_at DESC
 ", $params);
 
-// Get statistics
 $total_requests = getOne("SELECT COUNT(*) as count FROM supply_requests WHERE employee_id = ? AND (employee_reason IS NULL OR employee_reason != 'Self-service take')", [$employee_id])['count'];
 $pending_requests = getOne("SELECT COUNT(*) as count FROM supply_requests WHERE employee_id = ? AND status = 'pending' AND (employee_reason IS NULL OR employee_reason != 'Self-service take')", [$employee_id])['count'];
 $approved_requests = getOne("SELECT COUNT(*) as count FROM supply_requests WHERE employee_id = ? AND status = 'approved' AND (employee_reason IS NULL OR employee_reason != 'Self-service take')", [$employee_id])['count'];
@@ -160,7 +147,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             border: 1px solid #f5c6cb;
         }
 
-        /* Tab Navigation */
         .tabs {
             display: flex;
             gap: 10px;
@@ -217,7 +203,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             display: block;
         }
 
-        /* Request Form Styles */
         .request-form-card {
             background: white;
             border-radius: 15px;
@@ -339,7 +324,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             margin: 5px 0;
         }
 
-        /* My Requests Styles */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -636,7 +620,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
         <?php endif; ?>
 
-        <!-- Tab Navigation -->
         <div class="tabs">
             <button class="tab-btn <?php echo $active_tab === 'request' ? 'active' : ''; ?>" onclick="switchTab('request')">
                 <i class="fa-solid fa-plus"></i>
@@ -651,7 +634,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             </button>
         </div>
 
-        <!-- Tab 1: New Request Form -->
         <div id="request" class="tab-content <?php echo $active_tab === 'request' ? 'active' : ''; ?>">
             <div class="request-form-card">
                 <h2 style="color: #435334; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
@@ -720,9 +702,7 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
         </div>
 
-        <!-- Tab 2: My Requests -->
         <div id="my-requests" class="tab-content <?php echo $active_tab === 'my-requests' ? 'active' : ''; ?>">
-            <!-- Statistics -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></div>
@@ -749,7 +729,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                 </div>
             </div>
 
-            <!-- Filters -->
             <form method="GET" class="filters">
                 <input type="hidden" name="tab" value="my-requests">
                 <select name="status">
@@ -768,7 +747,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                 </a>
             </form>
 
-            <!-- Requests List -->
             <?php if (empty($my_requests)): ?>
                 <div class="empty-state">
                     <div class="icon"><i class="fa-solid fa-box-open icon-main"></i></div>
@@ -905,13 +883,11 @@ unset($_SESSION['success'], $_SESSION['error']);
     </main>
 
     <script>
-        // Translations for JavaScript
         const translations = {
             availableStock: "<?php echo t('available_stock'); ?>",
             units: "<?php echo t('units'); ?>"
         };
 
-        // Tab switching
         function switchTab(tabName) {
             window.history.pushState({}, '', '?tab=' + tabName);
             
@@ -922,7 +898,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
         }
 
-        // Update stock info
         function updateStockInfo() {
             const select = document.getElementById('itemSelect');
             const option = select.options[select.selectedIndex];
@@ -937,7 +912,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                 document.getElementById('stockUnit').textContent = unit;
                 stockInfo.classList.add('show');
 
-                // Change color based on stock level
                 if (parseInt(quantity) === 0) {
                     stockInfo.style.background = '#f8d7da';
                     stockInfo.querySelector('.label').style.color = '#721c24';

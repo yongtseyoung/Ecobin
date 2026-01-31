@@ -1,14 +1,9 @@
 <?php
-/**
- * Inventory Item History
- * Shows all transactions for a specific item
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication - admins only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
@@ -23,7 +18,6 @@ if (!$inventory_id) {
     exit;
 }
 
-// Get item details
 $item = getOne("SELECT * FROM inventory WHERE inventory_id = ?", [$inventory_id]);
 if (!$item) {
     $_SESSION['error'] = "Item not found";
@@ -31,7 +25,6 @@ if (!$item) {
     exit;
 }
 
-// Get all transactions for this item
 $transactions = getAll("
     SELECT 
         it.*,
@@ -43,7 +36,6 @@ $transactions = getAll("
     ORDER BY it.created_at DESC
 ", [$inventory_id]);
 
-// Get statistics
 $total_taken = getOne("SELECT COALESCE(SUM(quantity), 0) as total FROM inventory_transactions WHERE inventory_id = ? AND transaction_type = 'take'", [$inventory_id])['total'];
 $total_restocked = getOne("SELECT COALESCE(SUM(quantity), 0) as total FROM inventory_transactions WHERE inventory_id = ? AND transaction_type = 'restock'", [$inventory_id])['total'];
 ?>
@@ -246,7 +238,6 @@ $total_restocked = getOne("SELECT COALESCE(SUM(quantity), 0) as total FROM inven
             <a href="inventory.php" class="btn btn-primary">← Back to Inventory</a>
         </div>
 
-        <!-- Item Info -->
         <div class="item-info">
             <h2><?php echo htmlspecialchars($item['item_name']); ?></h2>
             <div class="info-grid">
@@ -269,7 +260,6 @@ $total_restocked = getOne("SELECT COALESCE(SUM(quantity), 0) as total FROM inven
             </div>
         </div>
 
-        <!-- Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value" style="color: #dc3545;"><?php echo $total_taken; ?></div>
@@ -287,7 +277,6 @@ $total_restocked = getOne("SELECT COALESCE(SUM(quantity), 0) as total FROM inven
             </div>
         </div>
 
-        <!-- Transactions Table -->
         <div class="transactions-table">
             <h3>Transaction History</h3>
             

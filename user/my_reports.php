@@ -1,37 +1,28 @@
 <?php
-/**
- * Employee My Reports
- * View submitted maintenance reports and track status
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 require_once '../config/languages.php';
 
-// Check authentication - employees only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'maintenance';
 
 $employee_id = $_SESSION['user_id'];
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
 
-// Get employee details and load language preference
 $employee = getOne("SELECT e.*, a.area_name 
                     FROM employees e 
                     LEFT JOIN areas a ON e.area_id = a.area_id 
                     WHERE e.employee_id = ?", 
                     [$employee_id]);
 
-// Get filter
 $status_filter = $_GET['status'] ?? 'all';
 
-// Build query
 $where = ["employee_id = ?"];
 $params = [$employee_id];
 
@@ -42,7 +33,6 @@ if ($status_filter !== 'all') {
 
 $where_clause = implode(" AND ", $where);
 
-// Get employee's reports
 $my_reports = getAll("
     SELECT 
         mr.*,
@@ -53,7 +43,6 @@ $my_reports = getAll("
     ORDER BY mr.reported_at DESC
 ", $params);
 
-// Get statistics
 $total_reports = getOne("SELECT COUNT(*) as count FROM maintenance_reports WHERE employee_id = ?", [$employee_id])['count'];
 $pending_reports = getOne("SELECT COUNT(*) as count FROM maintenance_reports WHERE employee_id = ? AND status = 'pending'", [$employee_id])['count'];
 $in_progress_reports = getOne("SELECT COUNT(*) as count FROM maintenance_reports WHERE employee_id = ? AND status = 'in_progress'", [$employee_id])['count'];
@@ -787,7 +776,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
         <?php endif; ?>
 
-        <!-- Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></div>
@@ -814,7 +802,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
         </div>
 
-        <!-- Filters -->
         <form method="GET" class="filters">
             <select name="status">
                 <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>><?php echo t('all_status'); ?></option>
@@ -997,7 +984,6 @@ unset($_SESSION['success'], $_SESSION['error']);
     </main>
 
     <script>
-        // Auto-hide success message after 5 seconds
         <?php if ($success): ?>
         setTimeout(() => {
             const alert = document.querySelector('.alert-success');

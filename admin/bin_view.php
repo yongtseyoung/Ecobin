@@ -1,20 +1,16 @@
 <?php
-/**
- * Bin Details View
- * Shows detailed information about a specific bin
- */
+
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
+
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'bins';
 
 $admin_id = $_SESSION['user_id'];
@@ -26,7 +22,6 @@ if (!$bin_id) {
     exit;
 }
 
-// Get bin details with device info
 $bin = getOne("SELECT b.*, a.area_name, a.block,
                d.device_code, d.device_status, d.last_ping, 
                d.signal_strength, d.device_mac_address, d.device_model
@@ -42,14 +37,12 @@ if (!$bin) {
     exit;
 }
 
-// Get recent sensor readings (last 20)
 $readings = getAll("SELECT * FROM sensor_readings 
                     WHERE bin_id = ? 
                     ORDER BY recorded_at DESC 
                     LIMIT 20", 
                     [$bin_id]);
 
-// Get collection history (tasks)
 $tasks = getAll("SELECT t.*, e.full_name as employee_name 
                  FROM tasks t 
                  LEFT JOIN employees e ON t.assigned_to = e.employee_id 
@@ -58,13 +51,11 @@ $tasks = getAll("SELECT t.*, e.full_name as employee_name
                  LIMIT 10", 
                  [$bin_id]);
 
-// Calculate statistics
 $total_collections = count(array_filter($tasks, fn($t) => $t['status'] === 'completed'));
 $pending_tasks = count(array_filter($tasks, fn($t) => $t['status'] === 'pending'));
 $avg_fill = $readings ? array_sum(array_column($readings, 'fill_level')) / count($readings) : 0;
 $avg_weight = $readings ? array_sum(array_column($readings, 'weight')) / count($readings) : 0;
 
-// Determine status color
 $status_class = 'normal';
 $status_text = 'Normal';
 if ($bin['current_fill_level'] >= 80) {
@@ -83,7 +74,6 @@ if ($bin['current_fill_level'] >= 80) $fill_color = '#e74c3c';
 elseif ($bin['current_fill_level'] >= 60) $fill_color = '#f39c12';
 elseif ($bin['current_fill_level'] >= 30) $fill_color = '#3498db';
 
-// Helper functions
 function getSignalBars($rssi) {
     if (!$rssi) return '<span style="color: #95a5a6;">○○○○</span>';
     

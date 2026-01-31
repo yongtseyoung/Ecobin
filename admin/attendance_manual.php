@@ -1,29 +1,22 @@
 <?php
-/**
- * Manual Attendance Entry
- */
+
 
 session_start();
-date_default_timezone_set('Asia/Kuala_Lumpur'); // Malaysia timezone
+date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication - Admin only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'attendance';
 
-// Get mode (add or edit)
 $mode = $_GET['mode'] ?? 'add';
 $attendance_id = $_GET['id'] ?? null;
 
-// Get all active employees
 $employees = getAll("SELECT employee_id, full_name FROM employees WHERE status = 'active' ORDER BY full_name");
 
-// If editing, get existing record
 $record = null;
 if ($mode === 'edit' && $attendance_id) {
     $record = getOne("SELECT * FROM attendance WHERE attendance_id = ?", [$attendance_id]);
@@ -34,12 +27,10 @@ if ($mode === 'edit' && $attendance_id) {
     }
 }
 
-// Get messages
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $employee_id = $_POST['employee_id'];
     $attendance_date = $_POST['attendance_date'];
@@ -48,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = $_POST['status'];
     $notes = $_POST['notes'] ?? '';
     
-    // Calculate work hours if both times provided
     $work_hours = null;
     if ($check_in_time && $check_out_time) {
         $checkin = strtotime($check_in_time);
@@ -58,14 +48,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     try {
         if ($mode === 'add') {
-            // Check if record already exists
             $existing = getOne("SELECT attendance_id FROM attendance WHERE employee_id = ? AND attendance_date = ?", 
                               [$employee_id, $attendance_date]);
             
             if ($existing) {
                 $_SESSION['error'] = "Attendance record already exists for this employee on this date";
             } else {
-                // Insert new record
                 $sql = "INSERT INTO attendance (employee_id, attendance_date, check_in_time, check_out_time, work_hours, status, notes) 
                         VALUES (?, ?, ?, ?, ?, ?, ?)";
                 query($sql, [$employee_id, $attendance_date, $check_in_time, $check_out_time, $work_hours, $status, $notes]);
@@ -74,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
         } else {
-            // Update existing record
             $sql = "UPDATE attendance 
                     SET employee_id = ?, attendance_date = ?, check_in_time = ?, check_out_time = ?, 
                         work_hours = ?, status = ?, notes = ?
@@ -413,7 +400,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 
     <script>
-        // Auto-calculate work hours (client-side preview)
         const checkinInput = document.querySelector('input[name="check_in_time"]');
         const checkoutInput = document.querySelector('input[name="check_out_time"]');
 

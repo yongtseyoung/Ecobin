@@ -1,33 +1,25 @@
 <?php
-/**
- * Task Management System - Main Dashboard
- * Shows all tasks (manual + auto-generated from IoT sensors)
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'tasks';
 
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
-// Get filter parameters
 $filter_date = $_GET['date'] ?? date('Y-m-d');
 $filter_employee = $_GET['employee'] ?? '';
 $filter_status = $_GET['status'] ?? '';
 $filter_type = $_GET['type'] ?? '';
 $filter_priority = $_GET['priority'] ?? '';
-$filter_source = $_GET['source'] ?? ''; // auto or manual
+$filter_source = $_GET['source'] ?? '';
 
-// Build query
 $query = "SELECT t.*, 
           e.full_name as employee_name, 
           e.username as employee_username,
@@ -44,7 +36,6 @@ $query = "SELECT t.*,
 
 $params = [];
 
-// Apply filters
 if ($filter_date) {
     $query .= " AND DATE(t.scheduled_date) = ?";
     $params[] = $filter_date;
@@ -84,10 +75,8 @@ $query .= " ORDER BY
 
 $tasks = getAll($query, $params);
 
-// Get all employees for filter
 $employees = getAll("SELECT employee_id, full_name FROM employees WHERE status = 'active' ORDER BY full_name");
 
-// Calculate statistics
 $total_tasks = count($tasks);
 $pending_tasks = count(array_filter($tasks, fn($t) => $t['status'] === 'pending'));
 $in_progress_tasks = count(array_filter($tasks, fn($t) => $t['status'] === 'in_progress'));
@@ -95,7 +84,6 @@ $completed_tasks = count(array_filter($tasks, fn($t) => $t['status'] === 'comple
 $auto_generated_tasks = count(array_filter($tasks, fn($t) => $t['is_auto_generated'] == 1));
 $manual_tasks = count(array_filter($tasks, fn($t) => $t['is_auto_generated'] == 0));
 
-// Get messages
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);

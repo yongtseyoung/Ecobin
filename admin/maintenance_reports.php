@@ -1,32 +1,24 @@
 <?php
-/**
- * Admin Maintenance Reports
- * View and manage all maintenance reports from employees
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication - admins only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'maintenance';
 
 $admin_id = $_SESSION['user_id'];
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
-// Get filters
 $status_filter = $_GET['status'] ?? 'all';
 $priority_filter = $_GET['priority'] ?? 'all';
 $category_filter = $_GET['category'] ?? 'all';
 $search = $_GET['search'] ?? '';
 
-// Build query
 $where = ["1=1"];
 $params = [];
 
@@ -54,7 +46,6 @@ if (!empty($search)) {
 
 $where_clause = implode(" AND ", $where);
 
-// Get all maintenance reports
 $reports = getAll("
     SELECT 
         mr.*,
@@ -80,7 +71,6 @@ $reports = getAll("
         mr.reported_at DESC
 ", $params);
 
-// Get statistics
 $total_reports = getOne("SELECT COUNT(*) as count FROM maintenance_reports")['count'];
 $pending_reports = getOne("SELECT COUNT(*) as count FROM maintenance_reports WHERE status = 'pending'")['count'];
 $in_progress_reports = getOne("SELECT COUNT(*) as count FROM maintenance_reports WHERE status = 'in_progress'")['count'];
@@ -520,7 +510,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
         <?php endif; ?>
 
-        <!-- Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value"><?php echo $total_reports; ?></div>
@@ -548,7 +537,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
         </div>
 
-        <!-- Filters -->
         <form method="GET" class="filters">
             <div class="filter-row">
                 <input type="text" name="search" placeholder="Search by title, location, or employee..." value="<?php echo htmlspecialchars($search); ?>">
@@ -582,7 +570,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
         </form>
 
-        <!-- Reports List -->
         <?php if (empty($reports)): ?>
             <div class="empty-state">
                 <i class="fa-solid fa-clipboard"></i>
@@ -733,7 +720,6 @@ unset($_SESSION['success'], $_SESSION['error']);
     </main>
 
     <script>
-        // Auto-hide success message after 5 seconds
         <?php if ($success): ?>
         setTimeout(() => {
             const alert = document.querySelector('.alert-success');

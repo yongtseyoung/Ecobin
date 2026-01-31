@@ -1,28 +1,21 @@
 <?php
-/**
- * Bins Dashboard - Real-time Bin Monitoring
- * View all bins with live status, fill levels, and battery status
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
+
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'bins';
 
-// Get filter parameters
 $filter_area = $_GET['area'] ?? '';
 $filter_status = $_GET['status'] ?? '';
-$filter_fill = $_GET['fill'] ?? ''; // low, medium, high, full
+$filter_fill = $_GET['fill'] ?? '';
 
-// Build query
 $query = "SELECT b.*, 
           a.area_name, a.block,
           d.device_code, d.device_status, d.last_ping, d.signal_strength, d.device_mac_address,
@@ -60,34 +53,28 @@ $query .= " ORDER BY b.current_fill_level DESC, b.bin_code ASC";
 
 $bins = getAll($query, $params);
 
-// Get areas for filter
 $areas = getAll("SELECT area_id, area_name, block FROM areas ORDER BY area_name");
 
-// Calculate statistics
 $total_bins = count($bins);
 $full_bins = count(array_filter($bins, fn($b) => $b['current_fill_level'] >= 80));
 $medium_bins = count(array_filter($bins, fn($b) => $b['current_fill_level'] >= 30 && $b['current_fill_level'] < 80));
 $empty_bins = count(array_filter($bins, fn($b) => $b['current_fill_level'] < 30));
 
-// A bin is offline if last_ping is NULL or older than 5 minutes
 $offline_bins = count(array_filter($bins, function($b) {
-    if (!$b['last_ping']) return true; // No ping yet = offline
+    if (!$b['last_ping']) return true; 
     $last_ping_time = strtotime($b['last_ping']);
     $five_minutes_ago = time() - (5 * 60);
-    return $last_ping_time < $five_minutes_ago; // Ping too old = offline
+    return $last_ping_time < $five_minutes_ago; 
 }));
 
 $low_battery = count(array_filter($bins, fn($b) => $b['battery_level'] < 20));
 
-// Calculate total weight
 $total_weight = array_sum(array_column($bins, 'current_weight'));
 
-// Get messages
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
-// Function to get signal strength bars
 function getSignalBars($rssi) {
     if (!$rssi) return '<span style="color: #95a5a6;"><i class="fa-solid fa-signal"></i> No Signal</span>';
     
@@ -98,7 +85,6 @@ function getSignalBars($rssi) {
     return '<span style="color: #e74c3c;"><i class="fa-solid fa-signal"></i> Poor</span>';
 }
 
-// Function to get weight status
 function getWeightStatus($weight, $maxWeight) {
     if (!$weight || !$maxWeight) return ['status' => 'Unknown', 'color' => '#95a5a6'];
     
@@ -188,10 +174,10 @@ function getWeightStatus($weight, $maxWeight) {
 
 .stats-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* responsive columns */
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
     gap: 15px;
     margin-bottom: 30px;
-    align-items: stretch; /* ensures all cards have same height */
+    align-items: stretch; 
 }
 
 .stat-card {
@@ -204,13 +190,13 @@ function getWeightStatus($weight, $maxWeight) {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100%; /* ensures stretching inside grid */
+    height: 100%; 
 }
 
 .stat-card .value {
     font-size: 32px;
     font-weight: 700;
-    color: #435334; /* All numbers same color */
+    color: #435334; 
     margin-bottom: 5px;
     line-height: 1;
 }
@@ -223,13 +209,12 @@ function getWeightStatus($weight, $maxWeight) {
     margin-top: 8px;
 }
 
-/* Remove the color overrides */
 .stat-card.alert .value,
 .stat-card.warning .value,
 .stat-card.success .value,
 .stat-card.offline .value,
 .stat-card.info .value {
-    color: #435334; /* All numbers same color */
+    color: #435334;
 }
 
         .live-indicator {
@@ -749,7 +734,6 @@ function getWeightStatus($weight, $maxWeight) {
                                 <strong>Device Status</strong>
                                 <span class="device-status">
                                     <?php 
-                                    // Check if device sent heartbeat in last 5 minutes
                                     $is_online = false;
                                     if ($bin['last_ping']) {
                                         $last_ping_time = strtotime($bin['last_ping']);
@@ -834,7 +818,6 @@ function getWeightStatus($weight, $maxWeight) {
     </main>
 
     <script>
-        // Auto-refresh every 30 seconds
         setTimeout(function() {
             location.reload();
         }, 30000);

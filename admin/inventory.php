@@ -1,28 +1,20 @@
 <?php
-/**
- * Inventory Management Dashboard
- * Admin view of all inventory items with stock levels
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication - admins only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'inventory';
 
-// Get filters
 $category_filter = $_GET['category'] ?? 'all';
 $status_filter = $_GET['status'] ?? 'all';
 $search = $_GET['search'] ?? '';
 
-// Build query
 $where = ["1=1"];
 $params = [];
 
@@ -44,10 +36,8 @@ if (!empty($search)) {
 
 $where_clause = implode(" AND ", $where);
 
-// Get inventory items
 $inventory_items = getAll("SELECT * FROM inventory WHERE $where_clause ORDER BY item_name", $params);
 
-// Get statistics
 $total_items = getOne("SELECT COUNT(*) as count FROM inventory")['count'];
 $low_stock = getOne("SELECT COUNT(*) as count FROM inventory WHERE status = 'low_stock'")['count'];
 $out_of_stock = getOne("SELECT COUNT(*) as count FROM inventory WHERE status = 'out_of_stock'")['count'];
@@ -340,7 +330,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
         <?php endif; ?>
 
-        <!-- Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value"><?php echo $total_items; ?></div>
@@ -363,7 +352,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
         </div>
 
-        <!-- Filters -->
         <form method="GET" class="filters">
             <input type="text" name="search" placeholder="Search items..." value="<?php echo htmlspecialchars($search); ?>">
             
@@ -386,7 +374,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             <a href="inventory.php" class="btn" style="background: #e0e0e0;">Clear</a>
         </form>
 
-        <!-- Inventory Table -->
         <div class="inventory-table">
             <?php if (empty($inventory_items)): ?>
                 <div class="empty-state">

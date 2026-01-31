@@ -1,15 +1,10 @@
 <?php
-/**
- * Employee Leave Dashboard
- * View leave requests, balances, and history
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 require_once '../config/languages.php';
 
-// Check authentication - employees only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     header("Location: ../login.php");
     exit;
@@ -19,7 +14,6 @@ $employee_id = $_SESSION['user_id'];
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
 $current_year = date('Y');
 
-// Get employee details and load language preference
 $employee = getOne("SELECT e.*, a.area_name 
                     FROM employees e 
                     LEFT JOIN areas a ON e.area_id = a.area_id 
@@ -27,13 +21,10 @@ $employee = getOne("SELECT e.*, a.area_name
                     [$employee_id]);
 
 
-// Set current page for sidebar
 $current_page = 'leave';
 
-// Get filter
 $status_filter = $_GET['status'] ?? 'all';
 
-// Get leave requests
 $query = "SELECT lr.*, lt.type_name, lt.color_code,
           a.full_name as reviewed_by_name
           FROM leave_requests lr
@@ -52,7 +43,6 @@ $query .= " ORDER BY lr.created_at DESC";
 
 $leave_requests = getAll($query, $params);
 
-// Get leave balances
 $leave_balances = getAll("SELECT lb.*, lt.type_name, lt.color_code, lt.max_days_per_year
                           FROM leave_balances lb
                           JOIN leave_types lt ON lb.leave_type_id = lt.leave_type_id
@@ -60,7 +50,6 @@ $leave_balances = getAll("SELECT lb.*, lt.type_name, lt.color_code, lt.max_days_
                           ORDER BY lt.type_name",
                           [$employee_id, $current_year]);
 
-// Calculate stats
 $total_requests = count($leave_requests);
 $pending = count(array_filter($leave_requests, fn($r) => $r['status'] === 'pending'));
 $approved = count(array_filter($leave_requests, fn($r) => $r['status'] === 'approved'));
@@ -451,7 +440,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             margin-bottom: 5px;
         }
 
-/* Responsive */
         @media (max-width: 1024px) {
             .content-grid {
                 grid-template-columns: 1fr;

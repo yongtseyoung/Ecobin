@@ -1,25 +1,18 @@
 <?php
-/**
- * Attendance System - Main Page
- * View and manage employee attendance records
- */
 
 session_start();
-date_default_timezone_set('Asia/Kuala_Lumpur'); // Malaysia timezone
+date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'attendance';
 
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
-// ============ ADDED: Handle Approval Actions ============
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     $attendance_id = $_POST['attendance_id'] ?? null;
@@ -52,19 +45,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         exit;
     }
 }
-// ============ END ADDED ============
 
-// Get filter parameters
 $selected_date = $_GET['date'] ?? date('Y-m-d');
 $selected_employee = $_GET['employee'] ?? '';
 $selected_status = $_GET['status'] ?? '';
 
-// Get success/error messages
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
-// Build query
 $query = "SELECT a.*, e.full_name, e.username, ar.area_name
           FROM attendance a
           JOIN employees e ON a.employee_id = e.employee_id
@@ -84,23 +73,17 @@ if ($selected_status) {
 
 $query .= " ORDER BY a.check_in_time ASC";
 
-// Get attendance records
 $attendance_records = getAll($query, $params);
 
-// Get all employees for filter dropdown
 $employees = getAll("SELECT employee_id, full_name FROM employees WHERE status = 'active' ORDER BY full_name");
 
-// ============ FIXED: Calculate statistics properly ============
 $total_employees = getOne("SELECT COUNT(*) as count FROM employees WHERE status = 'active'")['count'];
 $present_count = count(array_filter($attendance_records, fn($r) => $r['status'] === 'present'));
 $late_count = count(array_filter($attendance_records, fn($r) => $r['status'] === 'late'));
 
-// Count employees who actually checked in
 $checked_in_count = count($attendance_records);
 $absent_count = $total_employees - $checked_in_count;
-// ============ END FIXED ============
 
-// ============ ADDED: Count pending approvals ============
 $pending_approvals = array_filter($attendance_records, function($r) {
     return $r['status'] === 'absent' 
         && !empty($r['notes']) 
@@ -109,9 +92,7 @@ $pending_approvals = array_filter($attendance_records, function($r) {
         && strpos($r['notes'], '[Rejected by Admin') === false;
 });
 $pending_count = count($pending_approvals);
-// ============ END ADDED ============
 
-// Get employees who haven't checked in yet
 $checked_in_ids = array_column($attendance_records, 'employee_id');
 $absent_employees = [];
 if ($selected_date === date('Y-m-d')) {
@@ -145,7 +126,6 @@ if ($selected_date === date('Y-m-d')) {
             min-height: 100vh;
         }
 
-        /* Main Content */
         .main-content {
             margin-left: 250px;
             flex: 1;
@@ -225,7 +205,6 @@ if ($selected_date === date('Y-m-d')) {
             background: #c0392b;
         }
 
-        /* Alert Messages */
         .alert {
             padding: 15px 20px;
             border-radius: 10px;
@@ -248,7 +227,6 @@ if ($selected_date === date('Y-m-d')) {
             border: 1px solid #f5c6cb;
         }
 
-        /* Stats Cards */
         .stats-row {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -293,7 +271,6 @@ if ($selected_date === date('Y-m-d')) {
             color: #ff9800;
         }
 
-        /* Filters */
         .filters {
             background: white;
             padding: 20px;
@@ -336,7 +313,6 @@ if ($selected_date === date('Y-m-d')) {
             border-color: #435334;
         }
 
-        /* Table */
         .table-container {
             background: white;
             border-radius: 15px;
@@ -411,7 +387,6 @@ if ($selected_date === date('Y-m-d')) {
             text-decoration: underline;
         }
 
-        /* Notes Display */
         .notes-cell {
             max-width: 250px;
         }
@@ -516,7 +491,6 @@ if ($selected_date === date('Y-m-d')) {
             color: #999;
         }
 
-        /* Responsive */
         @media (max-width: 968px) {
             .main-content {
                 margin-left: 70px;
@@ -533,9 +507,7 @@ if ($selected_date === date('Y-m-d')) {
 <body>
     <?php include '../includes/admin_sidebar.php'; ?>
 
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <h1>Attendance System</h1>
             <div class="header-actions">
@@ -548,7 +520,6 @@ if ($selected_date === date('Y-m-d')) {
             </div>
         </div>
 
-        <!-- Alert Messages -->
         <?php if ($success): ?>
             <div class="alert alert-success">
                 <span>✓</span>
@@ -563,7 +534,6 @@ if ($selected_date === date('Y-m-d')) {
             </div>
         <?php endif; ?>
 
-        <!-- Stats Cards -->
         <div class="stats-row">
             <div class="stat-card">
                 <h3>Total Employees</h3>
@@ -587,7 +557,6 @@ if ($selected_date === date('Y-m-d')) {
             </div>
         </div>
 
-        <!-- Filters -->
         <div class="filters">
             <form method="GET" action="">
                 <div class="filter-group">
@@ -621,7 +590,6 @@ if ($selected_date === date('Y-m-d')) {
             </form>
         </div>
 
-        <!-- Attendance Table -->
         <div class="table-container">
             <?php if (empty($attendance_records)): ?>
                 <div class="empty-state">
@@ -731,7 +699,6 @@ if ($selected_date === date('Y-m-d')) {
                 </table>
             <?php endif; ?>
 
-            <!-- Show absent employees for today -->
             <?php if ($selected_date === date('Y-m-d') && !empty($absent_employees)): ?>
                 <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 10px;">
                     <h3 style="color: #856404; margin-bottom: 10px;">⚠ Not Checked In Yet:</h3>

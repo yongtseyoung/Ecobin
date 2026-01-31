@@ -1,38 +1,27 @@
 <?php
-/**
- * EcoBin Admin Dashboard
- * Main overview and summary of all system modules
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check if user is logged in and is admin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'dashboard';
 
-// Get admin info
 $admin_id = $_SESSION['user_id'];
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
-// Get real-time statistics
 try {
-    // User Stats
     $total_admins = getOne("SELECT COUNT(*) as count FROM admins WHERE status = 'active'")['count'];
     $total_employees = getOne("SELECT COUNT(*) as count FROM employees WHERE status = 'active'")['count'];
     $total_users = $total_admins + $total_employees;
     
-// Bin Stats - Enhanced Error Handling
 try {
     $total_bins = getOne("SELECT COUNT(*) as count FROM bins")['count'] ?? 0;
     
-    // Count bins that sent data within last 5 minutes
     $online_bins_result = getOne("
         SELECT COUNT(DISTINCT b.bin_id) as count 
         FROM bins b
@@ -51,11 +40,9 @@ try {
     $full_bins = 0;
 }
     
-    // Task Stats
     $tasks_today = getOne("SELECT COUNT(*) as count FROM tasks WHERE DATE(scheduled_date) = CURDATE() AND status = 'completed'")['count'];
     $pending_tasks = getOne("SELECT COUNT(*) as count FROM tasks WHERE status = 'pending'")['count'];
     
-// Alert Stats
     $maintenance_issues = getOne("SELECT COUNT(*) as count FROM maintenance_reports WHERE status = 'pending'")['count'] ?? 0;
     $leave_requests = getOne("SELECT COUNT(*) as count FROM leave_requests WHERE status = 'pending'")['count'] ?? 0;
     $supply_requests = getOne("SELECT COUNT(*) as count FROM supply_requests WHERE status = 'pending'")['count'] ?? 0;
@@ -66,10 +53,8 @@ try {
     
     $total_alerts = $maintenance_issues + $leave_requests + $supply_requests + $full_bins + $low_stock + $out_of_stock + $low_battery;
     
-    // Get Notifications for Today
     $notifications = [];
     
-    // 1. Pending Leave Requests (Today)
     $leave_notifs = getAll("
         SELECT 
             'leave_request' as type,
@@ -87,7 +72,6 @@ try {
     ");
     if ($leave_notifs) $notifications = array_merge($notifications, $leave_notifs);
     
-    // 2. Pending Maintenance Reports (Today)
     $maintenance_notifs = getAll("
         SELECT 
             'maintenance' as type,
@@ -116,7 +100,6 @@ try {
     ");
     if ($maintenance_notifs) $notifications = array_merge($notifications, $maintenance_notifs);
     
-    // 3. Full Bins (Current status)
     $bin_notifs = getAll("
         SELECT 
             'bin_full' as type,
@@ -133,7 +116,6 @@ try {
     ");
     if ($bin_notifs) $notifications = array_merge($notifications, $bin_notifs);
     
-    // 4. Low Stock Inventory (Current status)
     $inventory_notifs = getAll("
         SELECT 
             'inventory_low' as type,
@@ -150,7 +132,6 @@ try {
     ");
     if ($inventory_notifs) $notifications = array_merge($notifications, $inventory_notifs);
     
-    // 5. Out of Stock Inventory (Current status)
     $outofstock_notifs = getAll("
         SELECT 
             'inventory_out' as type,
@@ -166,7 +147,6 @@ try {
     ");
     if ($outofstock_notifs) $notifications = array_merge($notifications, $outofstock_notifs);
     
-    // 6. Pending Supply Requests (Today)
     $supply_notifs = getAll("
         SELECT 
             'supply_request' as type,
@@ -190,15 +170,12 @@ try {
     ");
     if ($supply_notifs) $notifications = array_merge($notifications, $supply_notifs);
     
-    // Sort all notifications by timestamp (most recent first)
     usort($notifications, function($a, $b) {
         return strtotime($b['timestamp']) - strtotime($a['timestamp']);
     });
     
-    // Today's Attendance
     $present_today = getOne("SELECT COUNT(DISTINCT employee_id) as count FROM attendance WHERE DATE(attendance_date) = CURDATE() AND check_in_time IS NOT NULL")['count'] ?? 0;
     
-    // Employee Performance (this month)
     $top_performers = getAll("
         SELECT e.full_name, COUNT(t.task_id) as completed_tasks 
         FROM employees e 
@@ -209,7 +186,6 @@ try {
     ");
     
 } catch (Exception $e) {
-    // Default values if queries fail
     $total_admins = $total_admins ?? 0;
     $total_employees = $total_employees ?? 0;
     $total_users = $total_admins + $total_employees;
@@ -222,7 +198,6 @@ try {
     $top_performers = [];
 }
 
-// Get current date info
 $current_time = date('g:i A');
 $current_date = date('l, F j, Y');
 ?>
@@ -253,7 +228,6 @@ $current_date = date('l, F j, Y');
             padding: 30px;
         }
 
-        /* Header */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -280,7 +254,6 @@ $current_date = date('l, F j, Y');
             color: #999;
         }
 
-        /* Welcome Card */
         .welcome-card {
             background: linear-gradient(135deg, #CEDEBD, #9db89a);
             border-radius: 15px;
@@ -300,7 +273,6 @@ $current_date = date('l, F j, Y');
             opacity: 0.9;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -345,14 +317,12 @@ $current_date = date('l, F j, Y');
             margin-top: 5px;
         }
 
-        /* Content Grid */
         .content-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 20px;
         }
 
-        /* Cards */
         .card {
             background: white;
             border-radius: 15px;
@@ -381,7 +351,6 @@ $current_date = date('l, F j, Y');
             text-decoration: none;
         }
 
-        /* Notifications Container */
         .notifications-container {
             max-height: 600px;
             overflow-y: auto;
@@ -406,13 +375,11 @@ $current_date = date('l, F j, Y');
             background: #9db89a;
         }
 
-        /* No Notifications State */
         .no-notifications {
             text-align: center;
             padding: 40px 20px;
         }
 
-/* Notification Item */
         .notification-item {
             display: flex;
             padding: 15px;
@@ -483,7 +450,6 @@ $current_date = date('l, F j, Y');
             font-size: 10px;
         }
 
-        /* Alert Badge */
         .alert-badge {
             background: #e74c3c;
             color: white;
@@ -493,7 +459,6 @@ $current_date = date('l, F j, Y');
             font-weight: 600;
         }
 
-        /* Quick Actions */
         .quick-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -523,7 +488,6 @@ $current_date = date('l, F j, Y');
             transform: translateY(-2px);
         }
 
-        /* Performance List */
         .performance-item {
             display: flex;
             justify-content: space-between;
@@ -546,7 +510,6 @@ $current_date = date('l, F j, Y');
             color: #27ae60;
         }
 
-        /* Responsive */
         @media (max-width: 1200px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -570,7 +533,6 @@ $current_date = date('l, F j, Y');
     <?php include '../includes/admin_sidebar.php'; ?>
 
     <main class="main-content">
-        <!-- Header -->
         <div class="page-header">
             <h1>Dashboard</h1>
             <div class="header-info">
@@ -579,12 +541,10 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Welcome Card -->
         <div class="welcome-card">
             <h2>  Welcome back, <?php echo htmlspecialchars(explode(' ', $admin_name)[0]); ?>!<i class="fa-regular fa-hand-wave" style="color: #435334;"></i> </h2>
         </div>
 
-        <!-- Quick Stats -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fa-solid fa-users" style="color: #435334;"></i></div>
@@ -623,9 +583,7 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Content Grid -->
         <div class="content-grid">
-<!-- Notifications -->
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
@@ -644,7 +602,6 @@ $current_date = date('l, F j, Y');
                     <?php else: ?>
                         <?php foreach ($notifications as $notif): ?>
                             <?php
-                                // Determine link based on type
                                 $link = '#';
                                 
                                 switch($notif['type']) {
@@ -666,7 +623,6 @@ $current_date = date('l, F j, Y');
                                         break;
                                 }
                                 
-                                // Priority class
                                 $priorityClass = '';
                                 switch($notif['priority']) {
                                     case 'high':
@@ -696,10 +652,8 @@ $current_date = date('l, F j, Y');
                                             } elseif ($time_diff < 3600) {
                                                 echo floor($time_diff / 60) . ' min ago';
                                             } elseif ($notif_date == $today_date) {
-                                                // If today, show only time
                                                 echo 'Today at ' . date('g:i A', strtotime($notif['timestamp']));
                                             } else {
-                                                // If not today, show date and time
                                                 echo date('M j, g:i A', strtotime($notif['timestamp']));
                                             }
                                         ?>
@@ -711,9 +665,7 @@ $current_date = date('l, F j, Y');
                 </div>
             </div>
 
-            <!-- Right Column -->
             <div>
-                <!-- Quick Actions -->
                 <div class="card" style="margin-bottom: 20px;">
                     <div class="card-header">
                         <h3 class="card-title">Quick Actions</h3>
@@ -726,7 +678,6 @@ $current_date = date('l, F j, Y');
                     </div>
                 </div>
 
-                <!-- Top Performers -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Top Performers (This Month)</h3>
@@ -749,7 +700,6 @@ $current_date = date('l, F j, Y');
                     <?php endif; ?>
                 </div>
 
-                <!-- Attendance Today -->
                 <div class="card" style="margin-top: 20px;">
                     <div class="card-header">
                         <h3 class="card-title">Attendance Today</h3>

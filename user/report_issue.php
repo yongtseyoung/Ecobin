@@ -1,27 +1,20 @@
 <?php
-/**
- * Employee Report Maintenance Issue
- * Submit new maintenance and issue reports
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 require_once '../config/languages.php';
 
-// Check authentication - employees only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'maintenance';
 
 $employee_id = $_SESSION['user_id'];
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
 
-// Get employee details and load language preference
 $employee = getOne("SELECT e.*, a.area_name 
                     FROM employees e 
                     LEFT JOIN areas a ON e.area_id = a.area_id 
@@ -603,7 +596,6 @@ unset($_SESSION['success'], $_SESSION['error']);
     </main>
 
     <script>
-        // Translations for JavaScript
         const translations = {
             fileSizeError: "<?php echo t('file_size_error'); ?>",
             fileTypeError: "<?php echo t('file_type_error'); ?>",
@@ -616,14 +608,12 @@ unset($_SESSION['success'], $_SESSION['error']);
             priorityHighDesc: "<?php echo t('priority_high_desc'); ?>"
         };
 
-        // Preview uploaded photo
         function previewPhoto(event) {
             const file = event.target.files[0];
             const preview = document.getElementById('photoPreview');
             const previewImage = document.getElementById('previewImage');
 
             if (file) {
-                // Validate file size (5MB)
                 if (file.size > 5 * 1024 * 1024) {
                     alert(translations.fileSizeError);
                     event.target.value = '';
@@ -631,7 +621,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                     return;
                 }
 
-                // Validate file type
                 if (!file.type.match('image/(jpeg|jpg|png)')) {
                     alert(translations.fileTypeError);
                     event.target.value = '';
@@ -650,7 +639,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             }
         }
 
-        // Update priority info badge
         function updatePriorityInfo() {
             const select = document.getElementById('prioritySelect');
             const info = document.getElementById('priorityInfo');
@@ -668,7 +656,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             info.innerHTML = badge;
         }
 
-        // Form validation
         function validateForm() {
             const title = document.querySelector('input[name="issue_title"]').value.trim();
             const category = document.querySelector('select[name="issue_category"]').value;
@@ -693,7 +680,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             return confirm(translations.confirmSubmit);
         }
 
-        // Auto-hide success message after 5 seconds
         <?php if ($success): ?>
         setTimeout(() => {
             const alert = document.querySelector('.alert-success');

@@ -1,30 +1,22 @@
 <?php
-/**
- * Admin Leave Management
- * Approve/reject leave requests and manage employee balances
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication - admins only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'leave';
 
 $admin_id = $_SESSION['user_id'];
 $current_year = date('Y');
 
-// Get filter
 $status_filter = $_GET['status'] ?? 'pending';
 $employee_filter = $_GET['employee'] ?? 'all';
 
-// Build query
 $query = "SELECT lr.*, 
           e.full_name as employee_name,
           lt.type_name, lt.color_code,
@@ -53,10 +45,8 @@ $query .= " ORDER BY
 
 $leave_requests = getAll($query, $params);
 
-// Get employees for filter
 $employees = getAll("SELECT employee_id, full_name FROM employees WHERE status = 'active' ORDER BY full_name");
 
-// Calculate stats
 $total = count(getAll("SELECT leave_id FROM leave_requests"));
 $pending = count(getAll("SELECT leave_id FROM leave_requests WHERE status = 'pending'"));
 $approved_today = count(getAll("SELECT leave_id FROM leave_requests WHERE status = 'approved' AND DATE(reviewed_at) = CURDATE()"));
@@ -542,7 +532,6 @@ unset($_SESSION['success'], $_SESSION['error']);
         </div>
     </main>
 
-    <!-- Approve Modal -->
     <div id="approveModal" class="modal">
         <div class="modal-content">
             <h3>✓ Approve Leave Request</h3>
@@ -567,7 +556,6 @@ unset($_SESSION['success'], $_SESSION['error']);
         </div>
     </div>
 
-    <!-- Reject Modal -->
     <div id="rejectModal" class="modal">
         <div class="modal-content">
             <h3>✗ Reject Leave Request</h3>
@@ -607,7 +595,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             document.getElementById(modalId).classList.remove('show');
         }
 
-        // Close modal when clicking outside
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', function(e) {
                 if (e.target === this) {

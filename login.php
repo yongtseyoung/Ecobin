@@ -1,13 +1,7 @@
 <?php
-/**
- * EcoBin Login Page
- * Beautiful minimal design with custom branding
- */
 
-// Start session
 session_start();
 
-// If already logged in, redirect to dashboard
 if (isset($_SESSION['user_id']) && isset($_SESSION['user_type'])) {
     if ($_SESSION['user_type'] === 'admin') {
         header("Location: admin/dashboard.php");
@@ -17,11 +11,9 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['user_type'])) {
     exit;
 }
 
-// Check for error or success messages
 $error = $_SESSION['error'] ?? '';
 $success = $_SESSION['success'] ?? '';
 
-// Clear messages after displaying
 unset($_SESSION['error']);
 unset($_SESSION['success']);
 ?>
@@ -41,7 +33,7 @@ unset($_SESSION['success']);
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #FAF1E4; /* Cream background */
+            background: #FAF1E4; 
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -55,11 +47,10 @@ unset($_SESSION['success']);
             text-align: center;
         }
 
-        /* Logo Circle */
         .logo-circle {
             width: 310px;
             height: 310px;
-            background: #c6e4b9; /* Light green circle */
+            background: #c6e4b9; 
             border-radius: 50%;
             margin: 0 auto 40px;
             display: flex;
@@ -75,7 +66,6 @@ unset($_SESSION['success']);
             object-fit: contain;
         }
 
-        /* If no logo image, show emoji */
         .logo-circle .emoji-logo {
             font-size: 80px;
         }
@@ -91,7 +81,6 @@ unset($_SESSION['success']);
             }
         }
 
-        /* Login Form Card */
         .login-card {
             background: white;
             border-radius: 30px;
@@ -111,7 +100,6 @@ unset($_SESSION['success']);
             }
         }
 
-        /* Alert Messages */
         .alert {
             padding: 12px 20px;
             border-radius: 15px;
@@ -138,7 +126,6 @@ unset($_SESSION['success']);
             border: 1px solid #b3ffb3;
         }
 
-        /* Form Inputs */
         .form-group {
             margin-bottom: 20px;
         }
@@ -165,12 +152,11 @@ unset($_SESSION['success']);
             box-shadow: 0 0 0 3px rgba(206, 222, 189, 0.3);
         }
 
-        /* Sign In Button */
         .btn-signin {
             width: 100%;
             max-width: 200px;
             padding: 15px 40px;
-            background: #CEDEBD; /* Light green button */
+            background: #CEDEBD; 
             border: none;
             border-radius: 30px;
             font-size: 16px;
@@ -192,14 +178,12 @@ unset($_SESSION['success']);
             transform: translateY(0);
         }
 
-        /* Brand Text */
         .brand-text {
             margin-top: 30px;
             color: #999;
             font-size: 13px;
         }
 
-        /* Responsive */
         @media (max-width: 500px) {
             .login-card {
                 padding: 40px 30px;
@@ -219,19 +203,15 @@ unset($_SESSION['success']);
 </head>
 <body>
     <div class="login-container">
-        <!-- Logo Circle -->
         <div class="logo-circle">
             <?php if (file_exists('assets/images/logo.png')): ?>
                 <img src="assets/images/logo.png" alt="EcoBin Logo">
             <?php else: ?>
-                <!-- Fallback emoji if no logo image -->
                 <div class="emoji-logo">🗑️</div>
             <?php endif; ?>
         </div>
 
-        <!-- Login Card -->
         <div class="login-card">
-            <!-- Error/Success Messages -->
             <?php if ($error): ?>
                 <div class="alert alert-error">
                     ⚠️ <?php echo htmlspecialchars($error); ?>
@@ -244,9 +224,7 @@ unset($_SESSION['success']);
                 </div>
             <?php endif; ?>
 
-            <!-- Login Form -->
             <form action="auth/login_process.php" method="POST" id="loginForm">
-                <!-- Username -->
                 <div class="form-group">
                     <input 
                         type="text" 
@@ -258,7 +236,6 @@ unset($_SESSION['success']);
                     >
                 </div>
 
-                <!-- Password -->
                 <div class="form-group">
                     <input 
                         type="password" 
@@ -268,13 +245,11 @@ unset($_SESSION['success']);
                     >
                 </div>
 
-                <!-- Sign In Button -->
                 <button type="submit" class="btn-signin">
                     Sign in
                 </button>
             </form>
 
-            <!-- Brand Text -->
             <div class="brand-text">
                 EcoBin - Smart Waste Management
             </div>
@@ -282,7 +257,6 @@ unset($_SESSION['success']);
     </div>
 
     <script>
-        // Auto-hide alerts after 5 seconds
         document.addEventListener('DOMContentLoaded', function() {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
@@ -296,7 +270,6 @@ unset($_SESSION['success']);
             });
         });
 
-        // Form loading state
         document.getElementById('loginForm').addEventListener('submit', function() {
             const submitBtn = this.querySelector('button[type="submit"]');
             submitBtn.disabled = true;

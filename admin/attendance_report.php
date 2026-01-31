@@ -1,36 +1,27 @@
 <?php
-/**
- * Attendance Reports & Analytics
- * Monthly reports, statistics, and export functionality
- */
+
 
 session_start();
-date_default_timezone_set('Asia/Kuala_Lumpur'); // Malaysia timezone
+date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'attendance';
 
 
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
-// Get filter parameters
 $selected_month = $_GET['month'] ?? date('Y-m');
 $selected_employee = $_GET['employee'] ?? '';
 
-// Parse month and year
 list($year, $month) = explode('-', $selected_month);
 
-// Get all employees for filter
 $employees = getAll("SELECT employee_id, full_name FROM employees WHERE status = 'active' ORDER BY full_name");
 
-// Get attendance data for the month
 $start_date = "$year-$month-01";
 $end_date = date('Y-m-t', strtotime($start_date));
 
@@ -50,7 +41,6 @@ $query .= " ORDER BY a.attendance_date DESC, e.full_name ASC";
 
 $attendance_records = getAll($query, $params);
 
-// Calculate statistics
 $total_working_days = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 $total_records = count($attendance_records);
 
@@ -59,11 +49,9 @@ $late_count = count(array_filter($attendance_records, fn($r) => $r['status'] ===
 $absent_count = count(array_filter($attendance_records, fn($r) => $r['status'] === 'absent'));
 $half_day_count = count(array_filter($attendance_records, fn($r) => $r['status'] === 'half_day'));
 
-// Calculate total work hours
 $total_work_hours = array_sum(array_column($attendance_records, 'work_hours'));
 $average_work_hours = $total_records > 0 ? $total_work_hours / $total_records : 0;
 
-// Group by employee for individual stats
 $employee_stats = [];
 foreach ($attendance_records as $record) {
     $emp_id = $record['employee_id'];
@@ -85,13 +73,11 @@ foreach ($attendance_records as $record) {
     $employee_stats[$emp_id]['total_hours'] += $record['work_hours'] ?? 0;
 }
 
-// Calculate attendance rate for each employee
 foreach ($employee_stats as &$stat) {
     $stat['attendance_rate'] = round(($stat['present'] + $stat['late']) / $total_working_days * 100, 1);
 }
 unset($stat);
 
-// Month name
 $month_name = date('F Y', strtotime($start_date));
 ?>
 <!DOCTYPE html>
@@ -191,7 +177,6 @@ $month_name = date('F Y', strtotime($start_date));
             transform: translateY(-2px);
         }
 
-        /* Filters */
         .filters {
             background: white;
             padding: 20px;
@@ -224,7 +209,6 @@ $month_name = date('F Y', strtotime($start_date));
             font-size: 14px;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -265,7 +249,6 @@ $month_name = date('F Y', strtotime($start_date));
             color: #e74c3c;
         }
 
-        /* Employee Stats Table */
         .table-container {
             background: white;
             border-radius: 15px;
@@ -366,7 +349,6 @@ $month_name = date('F Y', strtotime($start_date));
             </div>
         </div>
 
-        <!-- Filters -->
         <div class="filters">
             <form method="GET" action="">
                 <div class="filter-group">
@@ -392,7 +374,6 @@ $month_name = date('F Y', strtotime($start_date));
             </form>
         </div>
 
-        <!-- Report Title -->
         <div style="text-align: center; margin-bottom: 30px;">
             <h2 style="color: #435334; font-size: 24px;"><?php echo $month_name; ?> Attendance Report</h2>
             <?php if ($selected_employee): ?>
@@ -402,7 +383,6 @@ $month_name = date('F Y', strtotime($start_date));
             <?php endif; ?>
         </div>
 
-        <!-- Statistics -->
         <div class="stats-grid">
             <div class="stat-box">
                 <div class="value"><?php echo $total_working_days; ?></div>
@@ -430,7 +410,6 @@ $month_name = date('F Y', strtotime($start_date));
             </div>
         </div>
 
-        <!-- Employee Statistics -->
         <div class="table-container">
             <div class="table-header">
                 <h2>Employee Summary</h2>
@@ -481,7 +460,6 @@ $month_name = date('F Y', strtotime($start_date));
             <?php endif; ?>
         </div>
 
-        <!-- Detailed Records -->
         <div class="table-container">
             <div class="table-header">
                 <h2>Detailed Records</h2>

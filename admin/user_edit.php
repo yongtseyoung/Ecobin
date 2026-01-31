@@ -1,21 +1,15 @@
 <?php
-/**
- * Edit User (Admin or Employee)
- */
 
 session_start();
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'users';
 
-// Get user type and ID
 $user_type = $_GET['type'] ?? '';
 $user_id = $_GET['id'] ?? '';
 
@@ -25,7 +19,6 @@ if (empty($user_type) || empty($user_id)) {
     exit;
 }
 
-// Fetch user data
 if ($user_type === 'admin') {
     $user = getOne("SELECT * FROM admins WHERE admin_id = ?", [$user_id]);
 } else {
@@ -38,10 +31,8 @@ if (!$user) {
     exit;
 }
 
-// Get all areas for employee
 $areas = getAll("SELECT area_id, area_name, block FROM areas ORDER BY area_name");
 
-// Get error message
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['error']);
 ?>

@@ -1,27 +1,19 @@
 <?php
-/**
- * Supply Requests Management
- * Admin view and management of employee supply requests
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication - admins only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'Supply Requests';
 
-// Get filters
 $status_filter = $_GET['status'] ?? 'all';
 $urgency_filter = $_GET['urgency'] ?? 'all';
 
-// Build query
 $where = ["1=1"];
 $params = [];
 
@@ -37,7 +29,6 @@ if ($urgency_filter !== 'all') {
 
 $where_clause = implode(" AND ", $where);
 
-// Get supply requests with employee and inventory details
 $supply_requests = getAll("
     SELECT 
         sr.*,
@@ -63,7 +54,6 @@ $supply_requests = getAll("
         sr.requested_at DESC
 ", $params);
 
-// Get statistics
 $total_requests = getOne("SELECT COUNT(*) as count FROM supply_requests")['count'];
 $pending_requests = getOne("SELECT COUNT(*) as count FROM supply_requests WHERE status = 'pending'")['count'];
 $fulfilled_requests = getOne("SELECT COUNT(*) as count FROM supply_requests WHERE status = 'fulfilled'")['count'];
@@ -407,7 +397,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
         <?php endif; ?>
 
-        <!-- Statistics -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-value"><?php echo $total_requests; ?></div>
@@ -430,7 +419,6 @@ unset($_SESSION['success'], $_SESSION['error']);
     </div>
 </div>
 
-        <!-- Filters -->
         <form method="GET" class="filters">
             <select name="status">
                 <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>>All Status</option>
@@ -451,7 +439,6 @@ unset($_SESSION['success'], $_SESSION['error']);
             <a href="supply_requests.php" class="btn" style="background: #e0e0e0;">Clear</a>
         </form>
 
-        <!-- Requests Table -->
         <div class="requests-table">
             <?php if (empty($supply_requests)): ?>
                 <div class="empty-state">
@@ -566,7 +553,6 @@ function fulfillRequest(requestId, itemName, unit) {
     }
 }
 
-        // Close modal when clicking outside
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.classList.remove('active');

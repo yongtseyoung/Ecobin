@@ -1,29 +1,22 @@
 <?php
-/**
- * Waste Analytics Dashboard
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'reports';
 
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
-// Get filter period
 $period = $_GET['period'] ?? 'this_month';
 $custom_start = $_GET['start'] ?? null;
 $custom_end = $_GET['end'] ?? null;
 
-// Calculate date range based on period
 switch ($period) {
     case 'today':
         $start_date = date('Y-m-d');
@@ -61,7 +54,6 @@ switch ($period) {
         $period_label = date('F Y');
 }
 
-// Get waste collection statistics from tasks
 $waste_stats = getOne("
     SELECT 
         COUNT(DISTINCT t.task_id) as total_collections,
@@ -72,7 +64,6 @@ $waste_stats = getOne("
     AND DATE(t.completed_at) BETWEEN ? AND ?
 ", [$start_date, $end_date]);
 
-// Get total weight from collection_reports
 $weight_data = getOne("
     SELECT 
         COALESCE(SUM(total_weight), 0) as total_weight,
@@ -82,11 +73,9 @@ $weight_data = getOne("
     AND total_weight IS NOT NULL
 ", [$start_date, $end_date]);
 
-// Merge stats
 $waste_stats['total_weight'] = $weight_data['total_weight'];
 $waste_stats['avg_weight_per_collection'] = $weight_data['avg_weight'];
 
-// Get waste by area
 $waste_by_area = getAll("
     SELECT 
         a.area_name,
@@ -103,7 +92,6 @@ $waste_by_area = getAll("
     ORDER BY total_weight DESC
 ", [$start_date, $end_date]);
 
-// Get bin performance (most frequently serviced bins) - FIXED
 $bin_performance = getAll("
     SELECT 
         b.bin_id,
@@ -127,7 +115,6 @@ $bin_performance = getAll("
     LIMIT 10
 ", [$start_date, $end_date, $start_date, $end_date]);
 
-// Get daily waste trend (last 30 days)
 $daily_trend = getAll("
     SELECT 
         DATE(t.completed_at) as collection_date,
@@ -143,7 +130,6 @@ $daily_trend = getAll("
     ORDER BY collection_date ASC
 ");
 
-// Get monthly comparison (last 6 months)
 $monthly_comparison = getAll("
     SELECT 
         DATE_FORMAT(t.completed_at, '%Y-%m') as month,
@@ -188,7 +174,6 @@ $monthly_comparison = getAll("
             padding: 30px;
         }
 
-        /* Page Header */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -221,7 +206,6 @@ $monthly_comparison = getAll("
             background: #b8ceaa;
         }
 
-        /* Period Filter */
         .period-filter {
             background: white;
             padding: 20px;
@@ -290,7 +274,6 @@ $monthly_comparison = getAll("
             cursor: pointer;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -335,7 +318,6 @@ $monthly_comparison = getAll("
             margin-top: 8px;
         }
 
-        /* Environmental Impact Card */
         .impact-card {
             background: linear-gradient(135deg, #b0c599ff, #566a43ff);
             color: white;
@@ -376,7 +358,6 @@ $monthly_comparison = getAll("
             opacity: 0.9;
         }
 
-        /* Chart Containers */
         .charts-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -401,7 +382,6 @@ $monthly_comparison = getAll("
             max-height: 300px;
         }
 
-        /* Tables */
         .data-tables {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -448,7 +428,6 @@ $monthly_comparison = getAll("
             background: #fafafa;
         }
 
-        /* Responsive */
         @media (max-width: 1200px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -487,7 +466,6 @@ $monthly_comparison = getAll("
     <?php include '../includes/admin_sidebar.php'; ?>
 
     <div class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <h1>Waste Analytics</h1>
             <a href="analytics_reports.php" class="btn-secondary">
@@ -495,7 +473,6 @@ $monthly_comparison = getAll("
             </a>
         </div>
 
-        <!-- Period Filter -->
         <div class="period-filter">
             <h3>Select Time Period: <strong><?php echo $period_label; ?></strong></h3>
             <div class="period-buttons">
@@ -525,7 +502,6 @@ $monthly_comparison = getAll("
             </div>
         </div>
 
-        <!-- Main Stats -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value"><?php echo number_format($waste_stats['total_weight'], 1); ?> kg</div>
@@ -553,7 +529,6 @@ $monthly_comparison = getAll("
             </div>
         </div>
 
-        <!-- Charts -->
         <div class="charts-grid">
             <div class="chart-card">
                 <h3>Daily Waste Trend (Last 30 Days)</h3>
@@ -566,9 +541,7 @@ $monthly_comparison = getAll("
             </div>
         </div>
 
-        <!-- Data Tables -->
         <div class="data-tables">
-            <!-- Waste by Area -->
             <div class="table-card">
                 <h3>Waste Collection by Area</h3>
                 <table class="data-table">
@@ -599,7 +572,6 @@ $monthly_comparison = getAll("
                 </table>
             </div>
 
-            <!-- Bin Performance -->
             <div class="table-card">
                 <h3>Top Performing Bins</h3>
                 <table class="data-table">
@@ -633,7 +605,6 @@ $monthly_comparison = getAll("
     </div>
 
     <script>
-        // Daily Trend Chart
         const dailyCtx = document.getElementById('dailyTrendChart').getContext('2d');
         new Chart(dailyCtx, {
             type: 'line',
@@ -667,7 +638,6 @@ $monthly_comparison = getAll("
             }
         });
 
-        // Monthly Comparison Chart
         const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
         new Chart(monthlyCtx, {
             type: 'bar',

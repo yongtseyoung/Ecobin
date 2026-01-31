@@ -1,8 +1,4 @@
 <?php
-/**
- * Employee Dashboard
- * Main dashboard for employees to view their tasks, performance, and stats
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
@@ -10,40 +6,33 @@ require_once '../config/database.php';
 require_once '../config/languages.php';
 require_once '../config/performance_calculator.php';
 
-// Check authentication - employees only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'dashboard';
 
 $employee_id = $_SESSION['user_id'];
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
 
-// Get employee details and load language preference
 $employee = getOne("SELECT e.*, a.area_name 
                     FROM employees e 
                     LEFT JOIN areas a ON e.area_id = a.area_id 
                     WHERE e.employee_id = ?", 
                     [$employee_id]);
 
-// Load language preference
 $_SESSION['language'] = $employee['language'] ?? 'en';
 
-// Get today's date
 $today = date('Y-m-d');
 $current_month = date('Y-m');
 
-// Get task statistics
 $total_tasks = getOne("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ?", [$employee_id])['count'];
 $pending_tasks = getOne("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND status = 'pending'", [$employee_id])['count'];
 $in_progress_tasks = getOne("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND status = 'in_progress'", [$employee_id])['count'];
 $completed_today = getOne("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND status = 'completed' AND DATE(completed_at) = ?", [$employee_id, $today])['count'];
 $completed_month = getOne("SELECT COUNT(*) as count FROM tasks WHERE assigned_to = ? AND status = 'completed' AND DATE(completed_at) LIKE ?", [$employee_id, $current_month.'%'])['count'];
 
-// Get today's tasks
 $todays_tasks = getAll("SELECT t.*, b.bin_code, b.location_details 
                         FROM tasks t 
                         LEFT JOIN bins b ON t.triggered_by_bin = b.bin_id 
@@ -54,7 +43,6 @@ $todays_tasks = getAll("SELECT t.*, b.bin_code, b.location_details
                             FIELD(t.status, 'in_progress', 'pending', 'completed', 'cancelled')",
                         [$employee_id, $today]);
 
-// Get recent completed tasks
 $recent_completed = getAll("SELECT t.*, b.bin_code 
                            FROM tasks t 
                            LEFT JOIN bins b ON t.triggered_by_bin = b.bin_id 
@@ -64,7 +52,6 @@ $recent_completed = getAll("SELECT t.*, b.bin_code
                            LIMIT 5",
                            [$employee_id]);
 
-// Get attendance for this month
 $attendance_records = getAll("SELECT * FROM attendance 
                               WHERE employee_id = ? 
                               AND DATE(check_in_time) LIKE ? 
@@ -74,12 +61,10 @@ $attendance_records = getAll("SELECT * FROM attendance
 $present_days = count(array_filter($attendance_records, fn($a) => $a['status'] === 'present'));
 $late_days = count(array_filter($attendance_records, fn($a) => $a['status'] === 'late'));
 
-// Calculate performance score using the same PerformanceCalculator as My Performance page
 $calculator = new PerformanceCalculator($employee_id, 'current_month');
 $performance_metrics = $calculator->calculatePerformance();
 $performance_score = round($performance_metrics['performance_score'], 1);
 
-// Get urgent/high priority tasks
 $urgent_tasks = getAll("SELECT t.*, b.bin_code, b.location_details 
                         FROM tasks t 
                         LEFT JOIN bins b ON t.triggered_by_bin = b.bin_id 

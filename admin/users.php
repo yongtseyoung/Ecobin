@@ -1,35 +1,25 @@
 <?php
-/**
- * User Account Management
- * View and manage all admins and employees
- */
 
 session_start();
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'users';
 
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
-// Get active tab (default: employees)
 $active_tab = $_GET['tab'] ?? 'employees';
 
-// Get search query
 $search = $_GET['search'] ?? '';
 
-// Get success/error messages
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
-// Fetch admins
 $admin_sql = "SELECT admin_id, username, email, full_name, phone_number, status, created_at, last_login 
               FROM admins 
               WHERE 1=1";
@@ -41,7 +31,6 @@ if ($search) {
     $admins = getAll($admin_sql);
 }
 
-// Fetch employees
 $employee_sql = "SELECT e.employee_id, e.username, e.email, e.full_name, e.phone_number, 
                         e.status, e.created_at, e.last_login, a.area_name
                  FROM employees e
@@ -54,7 +43,6 @@ if ($search) {
     $employees = getAll($employee_sql);
 }
 
-// Get counts
 $total_admins = count($admins);
 $total_employees = count($employees);
 $active_admins = count(array_filter($admins, fn($a) => $a['status'] === 'active'));
@@ -119,7 +107,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             transform: translateY(-2px);
         }
 
-        /* Alert Messages */
         .alert {
             padding: 15px 20px;
             border-radius: 10px;
@@ -141,7 +128,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             border: 1px solid #f5c6cb;
         }
 
-        /* Stats Cards */
         .stats-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -180,7 +166,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             margin-bottom: 10px;
         }
 
-        /* Search Bar */
         .search-bar {
             background: white;
             padding: 20px;
@@ -236,7 +221,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             background: #e0e0e0;
         }
 
-        /* Tabs */
         .tabs {
             display: flex;
             gap: 10px;
@@ -266,7 +250,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             color: white;
         }
 
-        /* Table */
         .table-container {
             background: white;
             border-radius: 15px;
@@ -324,7 +307,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             color: #721c24;
         }
 
-        /* Action Buttons */
         .action-buttons {
             display: flex;
             gap: 8px;
@@ -378,7 +360,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             margin-bottom: 10px;
         }
 
-        /* Responsive */
         @media (max-width: 1200px) {
             .stats-row {
                 grid-template-columns: repeat(2, 1fr);
@@ -426,9 +407,7 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
 <body>
     <?php include '../includes/admin_sidebar.php'; ?>
 
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <h1>User Account Management</h1>
             <a href="user_add.php" class="btn-primary">
@@ -436,7 +415,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             </a>
         </div>
 
-        <!-- Alert Messages -->
         <?php if ($success): ?>
             <div class="alert alert-success">
                 <span>✓</span>
@@ -451,7 +429,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             </div>
         <?php endif; ?>
 
-        <!-- Stats Cards -->
         <div class="stats-row">
             <div class="stat-card">
                 <h3>Total Admins</h3>
@@ -471,7 +448,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             </div>
         </div>
 
-        <!-- Search Bar -->
         <div class="search-bar">
             <form method="GET" action="">
                 <input type="hidden" name="tab" value="<?php echo htmlspecialchars($active_tab); ?>">
@@ -488,7 +464,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             </form>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs">
             <a href="?tab=employees&search=<?php echo urlencode($search); ?>" 
                class="tab <?php echo $active_tab === 'employees' ? 'active' : ''; ?>">
@@ -500,10 +475,8 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
             </a>
         </div>
 
-        <!-- Users Table -->
         <div class="table-container">
             <?php if ($active_tab === 'employees'): ?>
-                <!-- Employees Table -->
                 <?php if (empty($employees)): ?>
                     <div class="empty-state">
                         <div class="icon">👥</div>
@@ -557,7 +530,6 @@ $active_employees = count(array_filter($employees, fn($e) => $e['status'] === 'a
                 <?php endif; ?>
 
             <?php else: ?>
-                <!-- Admins Table -->
                 <?php if (empty($admins)): ?>
                     <div class="empty-state">
                         <div class="icon"></div>

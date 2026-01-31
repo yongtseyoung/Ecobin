@@ -1,20 +1,14 @@
 <?php
-/**
- * Admin Report Details
- * View and manage individual maintenance report
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication - admins only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'maintenance';
 
 $admin_id = $_SESSION['user_id'];
@@ -28,7 +22,6 @@ if (!$report_id) {
     exit;
 }
 
-// Get report details
 $report = getOne("
     SELECT 
         mr.*,
@@ -48,7 +41,6 @@ if (!$report) {
     exit;
 }
 
-// Get all admins for assignment dropdown
 $admins = getAll("SELECT admin_id, full_name FROM admins ORDER BY full_name");
 
 $success = $_SESSION['success'] ?? '';
@@ -437,7 +429,6 @@ unset($_SESSION['success'], $_SESSION['error']);
         <?php endif; ?>
 
         <div class="content-grid">
-            <!-- Main Content -->
             <div>
                 <div class="card">
                     <h2><i class="fa-solid fa-circle-info"></i> Report Details</h2>
@@ -547,7 +538,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                         </div>
                     <?php endif; ?>
 
-                    <!-- Update Admin Notes Form -->
                     <form action="maintenance_actions.php" method="POST">
                         <input type="hidden" name="action" value="update_notes">
                         <input type="hidden" name="report_id" value="<?php echo $report_id; ?>">
@@ -564,7 +554,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                     </form>
                 </div>
 
-                <!-- Timeline -->
                 <div class="card" style="margin-top: 20px;">
                     <h2><i class="fa-solid fa-clock-rotate-left"></i> Timeline</h2>
                     <div class="timeline">
@@ -603,12 +592,10 @@ unset($_SESSION['success'], $_SESSION['error']);
                 </div>
             </div>
 
-            <!-- Sidebar Actions -->
             <div>
                 <div class="card">
                     <h2><i class="fa-solid fa-sliders"></i> Actions</h2>
 
-                    <!-- Update Status -->
                     <form action="maintenance_actions.php" method="POST">
                         <input type="hidden" name="action" value="update_status">
                         <input type="hidden" name="report_id" value="<?php echo $report_id; ?>">
@@ -628,7 +615,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                         </button>
                     </form>
 
-                    <!-- Assign To -->
                     <form action="maintenance_actions.php" method="POST" style="margin-top: 20px;">
                         <input type="hidden" name="action" value="assign">
                         <input type="hidden" name="report_id" value="<?php echo $report_id; ?>">
@@ -651,7 +637,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                         </button>
                     </form>
 
-                    <!-- Quick Actions -->
                     <div class="action-section">
                         <h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3>
                         <div class="action-buttons">
@@ -694,7 +679,6 @@ unset($_SESSION['success'], $_SESSION['error']);
     </main>
 
     <script>
-        // Auto-hide success message after 5 seconds
         <?php if ($success): ?>
         setTimeout(() => {
             const alert = document.querySelector('.alert-success');

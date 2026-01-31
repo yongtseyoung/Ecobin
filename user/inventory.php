@@ -1,38 +1,30 @@
 <?php
-/**
- * Employee Inventory Management
- * View inventory, take supplies directly, or request approval
- */
+
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 require_once '../config/languages.php';
 
-// Check authentication - employees only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'inventory';
 
 $employee_id = $_SESSION['user_id'];
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
 
-// Get employee details and load language preference
 $employee = getOne("SELECT e.*, a.area_name 
                     FROM employees e 
                     LEFT JOIN areas a ON e.area_id = a.area_id 
                     WHERE e.employee_id = ?", 
                     [$employee_id]);
 
-// Get filters
 $category_filter = $_GET['category'] ?? 'all';
 $search = $_GET['search'] ?? '';
 
-// Build query
 $where = ["1=1"];
 $params = [];
 
@@ -49,10 +41,8 @@ if (!empty($search)) {
 
 $where_clause = implode(" AND ", $where);
 
-// Get inventory items
 $inventory_items = getAll("SELECT * FROM inventory WHERE $where_clause ORDER BY item_name", $params);
 
-// Get employee's recent transactions (last 10) from inventory_transactions
 $my_transactions = getAll("
     SELECT 
         it.*,
@@ -65,15 +55,13 @@ $my_transactions = getAll("
     LIMIT 10
 ", [$employee_id]);
 
-// Get statistics
 $total_items = getOne("SELECT COUNT(*) as count FROM inventory")['count'];
 $in_stock = getOne("SELECT COUNT(*) as count FROM inventory WHERE status = 'in_stock'")['count'];
 $low_stock = getOne("SELECT COUNT(*) as count FROM inventory WHERE status = 'low_stock'")['count'];
 
-// Get success/error messages
 $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
-$success_type = $_SESSION['success_type'] ?? ''; // 'take' or 'request'
+$success_type = $_SESSION['success_type'] ?? '';
 $highlight_item = $_SESSION['highlight_item'] ?? 0;
 unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SESSION['highlight_item']);
 ?>
@@ -383,7 +371,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
             margin-bottom: 20px;
         }
 
-        /* Transaction History Section */
         .history-section {
             background: white;
             border-radius: 15px;
@@ -436,7 +423,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
             color: #435334;
         }
 
-        /* Request Modal */
         .modal {
             display: none;
             position: fixed;
@@ -802,7 +788,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
             </div>
         <?php endif; ?>
 
-        <!-- Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fa-solid fa-box icon-main"></i></div>
@@ -823,7 +808,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
             </div>
         </div>
 
-        <!-- Filters -->
         <form method="GET" class="filters">
             <input type="text" name="search" placeholder="<?php echo t('search_items'); ?>..." value="<?php echo htmlspecialchars($search); ?>">
             
@@ -843,7 +827,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
             </a>
         </form>
 
-        <!-- Inventory Table -->
         <div class="inventory-table">
             <?php if (empty($inventory_items)): ?>
                 <div class="empty-state">
@@ -900,7 +883,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
                                 <td>
                                     <div class="action-buttons">
                                         <?php if ($item['status'] !== 'out_of_stock'): ?>
-                                            <!-- Take Button -->
                                             <form action="inventory_take.php" method="POST" class="take-supply-form" onsubmit="return confirmTake(this, <?php echo $item['current_quantity']; ?>)">
                                                 <input type="hidden" name="action" value="take">
                                                 <input type="hidden" name="inventory_id" value="<?php echo $item['inventory_id']; ?>">
@@ -915,7 +897,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
                                             </span>
                                         <?php endif; ?>
 
-                                        <!-- Request Button -->
                                         <button onclick="openRequestModal(<?php echo $item['inventory_id']; ?>, '<?php echo htmlspecialchars($item['item_name'], ENT_QUOTES); ?>', <?php echo $item['current_quantity']; ?>, '<?php echo htmlspecialchars($item['unit'], ENT_QUOTES); ?>')" class="btn btn-info btn-sm">
                                             <?php echo t('request'); ?>
                                         </button>
@@ -928,7 +909,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
             <?php endif; ?>
         </div>
 
-        <!-- My Recent Transactions -->
         <?php if (!empty($my_transactions)): ?>
             <div class="history-section">
                 <h2>
@@ -952,7 +932,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
         <?php endif; ?>
     </main>
 
-    <!-- Request Modal -->
     <div id="requestModal" class="modal">
         <div class="modal-content">
             <h3>
@@ -1006,7 +985,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
     </div>
 
     <script>
-        // Translations for JavaScript
         const translations = {
             onlyAvailable: "<?php echo t('only_units_available'); ?>",
             takeConfirm: "<?php echo t('take_confirm'); ?>",
@@ -1014,11 +992,9 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
             units: "<?php echo t('units'); ?>"
         };
 
-        // Scroll to top if there's a success message
         <?php if ($success): ?>
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Auto-hide success message after 5 seconds
         setTimeout(() => {
             const alert = document.getElementById('successAlert');
             if (alert) {
@@ -1029,7 +1005,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
         }, 5000);
         <?php endif; ?>
 
-        // Scroll to highlighted item
         <?php if ($highlight_item): ?>
         setTimeout(() => {
             const item = document.getElementById('item-<?php echo $highlight_item; ?>');
@@ -1052,7 +1027,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
             return confirm(translations.takeConfirm.replace('{quantity}', quantity).replace('{unit}', unitText).replace('{item}', itemName));
         }
 
-        // Request Modal Functions
         function openRequestModal(inventoryId, itemName, available, unit) {
             document.getElementById('modal_inventory_id').value = inventoryId;
             document.getElementById('modal_item_name').textContent = itemName;
@@ -1065,7 +1039,6 @@ unset($_SESSION['success'], $_SESSION['error'], $_SESSION['success_type'], $_SES
             document.getElementById('requestModal').classList.remove('active');
         }
 
-        // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('requestModal');
             if (event.target === modal) {

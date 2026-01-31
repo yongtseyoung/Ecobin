@@ -613,12 +613,10 @@ unset($_SESSION['success'], $_SESSION['error']);
     </main>
 
     <script>
-        // Translations for JavaScript
         const translations = {
             totalDaysRequested: "<?php echo t('total_days_requested'); ?>"
         };
 
-        // Calculate total days between dates
         const startDate = document.getElementById('startDate');
         const endDate = document.getElementById('endDate');
         const totalDaysEl = document.getElementById('totalDays');
@@ -631,7 +629,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                 
                 if (end >= start) {
                     const diffTime = Math.abs(end - start);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both days
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
                     
                     totalDaysEl.textContent = diffDays;
                     calculator.style.display = 'block';
@@ -646,7 +644,6 @@ unset($_SESSION['success'], $_SESSION['error']);
         startDate.addEventListener('change', calculateDays);
         endDate.addEventListener('change', calculateDays);
 
-        // Update end date min value when start date changes
         startDate.addEventListener('change', function() {
             endDate.min = this.value;
         });

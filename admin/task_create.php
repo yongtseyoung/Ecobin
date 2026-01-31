@@ -1,35 +1,25 @@
 <?php
-/**
- * Create New Task
- * Manual task creation by admin
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'tasks';
 
 $admin_id = $_SESSION['user_id'];
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
-// Get active employees
 $employees = getAll("SELECT employee_id, full_name, area_id FROM employees WHERE status = 'active' ORDER BY full_name");
 
-// Get areas
 $areas = getAll("SELECT area_id, area_name, block FROM areas ORDER BY area_name");
 
-// Get bins
 $bins = getAll("SELECT bin_id, bin_code, location_details, area_id, current_fill_level FROM bins ORDER BY bin_code");
 
-// Get error/success messages
 $error = $_SESSION['error'] ?? '';
 $success = $_SESSION['success'] ?? '';
 unset($_SESSION['error'], $_SESSION['success']);
@@ -429,7 +419,6 @@ unset($_SESSION['error'], $_SESSION['success']);
     </main>
 
     <script>
-        // Auto-fill area when employee is selected
         document.getElementById('assignedTo').addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const areaId = selectedOption.getAttribute('data-area');
@@ -438,7 +427,6 @@ unset($_SESSION['error'], $_SESSION['success']);
             }
         });
 
-        // Auto-fill area when bin is selected
         document.getElementById('binSelect').addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const areaId = selectedOption.getAttribute('data-area');

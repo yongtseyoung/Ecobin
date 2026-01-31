@@ -1,15 +1,5 @@
 <?php
-/**
- * Employee Sidebar Navigation - EcoBin Theme
- * Include this file in all employee pages
- * 
- * Required variables before including:
- * - $_SESSION['user_id'] - Employee ID
- * - $_SESSION['full_name'] - Employee full name
- * - $current_page (optional) - Current page identifier for active state
- */
 
-// Get employee details if not already loaded
 if (!isset($employee)) {
     $employee = getOne("SELECT e.*, a.area_name 
                         FROM employees e 
@@ -19,13 +9,12 @@ if (!isset($employee)) {
 }
 
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
-$current_page = $current_page ?? ''; // Set this variable in each page before including sidebar
+$current_page = $current_page ?? '';
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-    /* Sidebar Styles */
     .sidebar {
         width: 250px;
         background: #435334;
@@ -145,7 +134,6 @@ $current_page = $current_page ?? ''; // Set this variable in each page before in
         font-size: 18px;
     }
 
-    /* Hamburger Menu Button */
     .hamburger-btn {
         display: none;
         position: fixed;
@@ -172,7 +160,6 @@ $current_page = $current_page ?? ''; // Set this variable in each page before in
         left: 270px;
     }
 
-    /* Overlay */
     .sidebar-overlay {
         display: none;
         position: fixed;
@@ -184,7 +171,6 @@ $current_page = $current_page ?? ''; // Set this variable in each page before in
         z-index: 999;
     }
 
-/* Responsive */
     @media (max-width: 768px) {
         .sidebar {
             transform: translateX(-100%);
@@ -204,7 +190,6 @@ $current_page = $current_page ?? ''; // Set this variable in each page before in
             display: block;
         }
 
-        /* Keep all text visible when sidebar is open on mobile */
         .sidebar .user-profile,
         .sidebar .user-name,
         .sidebar .user-role,
@@ -224,12 +209,10 @@ $current_page = $current_page ?? ''; // Set this variable in each page before in
     }
 </style>
 
-<!-- Hamburger Button -->
 <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()">
     <i class="fa-solid fa-bars"></i>
 </button>
 
-<!-- Sidebar Overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
 <aside class="sidebar" id="sidebar">
@@ -299,7 +282,6 @@ function toggleSidebar() {
     hamburgerBtn.classList.toggle('active');
 }
 
-// Close sidebar when clicking on a nav item (mobile only)
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', function() {
         if (window.innerWidth <= 768) {

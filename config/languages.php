@@ -1,8 +1,4 @@
 <?php
-/**
- * Language Configuration
- * Complete translations for EcoBin System
- */
 
 function getLanguageStrings($lang = 'en') {
     $languages = [
@@ -108,11 +104,11 @@ function getLanguageStrings($lang = 'en') {
 'task_started_success' => 'Task started successfully',
 'task_not_found_not_assigned' => 'Task not found or not assigned to you',
 'task_already_started' => 'This task has already been started',
-'task_started_good_luck' => 'Task started! Good luck! 💪',
+'task_started_good_luck' => 'Task started! Good luck!',
 'task_already_completed' => 'This task is already completed',
 'cannot_complete_cancelled' => 'Cannot complete a cancelled task',
 'auto_generated_collection_report' => 'Auto-generated collection report',
-'task_completed_great_job' => 'Task completed successfully! Great job! 🎉',
+'task_completed_great_job' => 'Task completed successfully! Great job!',
 'task_deleted_success' => 'Task deleted successfully',
 'invalid_action_insufficient_permissions' => 'Invalid action or insufficient permissions',
 
@@ -560,9 +556,9 @@ function getLanguageStrings($lang = 'en') {
     'recently_completed' => 'Tugasan Baru Selesai',
             
             // ============ NAVIGATION ============
-            'dashboard' => 'papan pemuka',
+            'dashboard' => 'Papan pemuka',
             'attendance' => 'Kehadiran',
-            'maintenance' => 'laporan Penyelenggaraan',
+            'maintenance' => 'Laporan Penyelenggaraan',
             'my_performance' => 'Prestasi Saya',
             'profile' => 'Profil',
             'logout' => 'Logout',
@@ -1081,7 +1077,6 @@ function getLanguageStrings($lang = 'en') {
     return $languages[$lang] ?? $languages['en'];
 }
 
-// Helper function to get translated text
 function t($key, $lang = null) {
     if ($lang === null) {
         $lang = $_SESSION['language'] ?? 'en';

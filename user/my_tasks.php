@@ -1,15 +1,10 @@
 <?php
-/**
- * My Tasks - Employee View
- * Mobile-friendly interface for employees to view and manage their assigned tasks
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 require_once '../config/languages.php';
 
-// Check employee authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     header("Location: ../login.php");
     exit;
@@ -18,7 +13,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
 $employee_id = $_SESSION['user_id'];
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
 
-// Get employee details and load language preference
 $employee = getOne("SELECT e.*, a.area_name 
                     FROM employees e 
                     LEFT JOIN areas a ON e.area_id = a.area_id 
@@ -26,13 +20,10 @@ $employee = getOne("SELECT e.*, a.area_name
                     [$employee_id]);
 
 
-// Set current page for sidebar
 $current_page = 'tasks';
 
-// Get filter
-$filter = $_GET['filter'] ?? 'active'; // active, today, all
+$filter = $_GET['filter'] ?? 'active';
 
-// Build query based on filter
 $query = "SELECT t.*, 
           a.area_name,
           b.bin_code,
@@ -62,7 +53,6 @@ if ($filter === 'today') {
 
 $tasks = getAll($query, $params);
 
-// Calculate stats
 $total_tasks = count($tasks);
 $pending = count(array_filter($tasks, fn($t) => $t['status'] === 'pending'));
 $in_progress = count(array_filter($tasks, fn($t) => $t['status'] === 'in_progress'));
@@ -72,7 +62,6 @@ $success = $_SESSION['success'] ?? '';
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
-// Get current date info
 $current_time = date('g:i A');
 $current_date = date('l, F j, Y');
 ?>
@@ -104,7 +93,6 @@ $current_date = date('l, F j, Y');
             padding: 30px;
         }
 
-        /* Page Header */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -142,7 +130,6 @@ $current_date = date('l, F j, Y');
             justify-content: flex-end;
         }
 
-        /* Alert Messages */
         .alert {
             padding: 15px 20px;
             border-radius: 10px;
@@ -165,7 +152,6 @@ $current_date = date('l, F j, Y');
             border: 1px solid #f5c6cb;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -214,7 +200,6 @@ $current_date = date('l, F j, Y');
             color: #435334;
         }
 
-        /* Filter Tabs */
         .filter-section {
             background: white;
             padding: 20px;
@@ -258,7 +243,6 @@ $current_date = date('l, F j, Y');
             border-color: #435334;
         }
 
-        /* Tasks Container */
         .tasks-container {
             background: white;
             border-radius: 15px;
@@ -279,7 +263,6 @@ $current_date = date('l, F j, Y');
             gap: 10px;
         }
 
-        /* Task Card */
         .task-card {
             padding: 25px;
             border-bottom: 1px solid #f0f0f0;
@@ -403,7 +386,6 @@ $current_date = date('l, F j, Y');
             box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -426,7 +408,6 @@ $current_date = date('l, F j, Y');
             font-size: 15px;
         }
 
-        /* Complete Modal */
         .complete-modal {
             display: none;
             position: fixed;
@@ -506,7 +487,6 @@ $current_date = date('l, F j, Y');
             text-decoration: underline;
         }
 
-/* Responsive Design */
         @media (max-width: 1200px) {
             .stats-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -831,7 +811,6 @@ $current_date = date('l, F j, Y');
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <h1>
                 <?php echo t('my_tasks'); ?>
@@ -848,7 +827,6 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Alert Messages -->
         <?php if ($success): ?>
             <div class="alert alert-success">
                 <i class="fa-solid fa-circle-check"></i>
@@ -863,7 +841,6 @@ $current_date = date('l, F j, Y');
             </div>
         <?php endif; ?>
 
-        <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card today">
                 <div class="icon"><i class="fa-solid fa-calendar-day"></i></div>
@@ -882,7 +859,6 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Filter Section -->
         <div class="filter-section">
             <div class="filter-tabs">
                 <a href="?filter=active" class="filter-tab <?php echo $filter === 'active' ? 'active' : ''; ?>">
@@ -897,7 +873,6 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Tasks Container -->
         <div class="tasks-container">
             <div class="tasks-header">
                 <h3>
@@ -1034,7 +1009,6 @@ $current_date = date('l, F j, Y');
         </div>
     </div>
 
-    <!-- Complete Task Modal -->
     <div id="completeModal" class="complete-modal">
         <div class="modal-content">
             <h3>
@@ -1070,7 +1044,6 @@ $current_date = date('l, F j, Y');
             document.getElementById('completeModal').classList.remove('active');
         }
 
-        // Close modal when clicking outside
         document.getElementById('completeModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeCompleteModal();

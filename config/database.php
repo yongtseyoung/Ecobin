@@ -1,36 +1,25 @@
 <?php
-/**
- * EcoBin Database Configuration
- * 
- * This file handles the connection to MySQL database
- * Using PDO (PHP Data Objects) for secure database operations
- */
 
-// Database configuration constants
-define('DB_HOST', 'localhost');      // Database host
-define('DB_NAME', 'ecobin');         // Database name
-define('DB_USER', 'root');           // Database username
-define('DB_PASS', '');               // Database password (blank for XAMPP default)
-define('DB_CHARSET', 'utf8mb4');     // Character set
+define('DB_HOST', 'localhost');      
+define('DB_NAME', 'ecobin');         
+define('DB_USER', 'root');           
+define('DB_PASS', '');               
+define('DB_CHARSET', 'utf8mb4');     
 
-// PDO options for security and error handling
 $options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,     // Throw exceptions on errors
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,           // Fetch as associative array
-    PDO::ATTR_EMULATE_PREPARES   => false,                      // Use real prepared statements
-    PDO::ATTR_PERSISTENT         => false,                      // Don't use persistent connections
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,    
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,           
+    PDO::ATTR_EMULATE_PREPARES   => false,                      
+    PDO::ATTR_PERSISTENT         => false,                      
 ];
 
-// Create PDO connection
+
 try {
     $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
     $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
     
-    // Connection successful (for debugging, comment out in production)
-    // echo "Database connected successfully!";
     
 } catch (PDOException $e) {
-    // Connection failed
     die("Database Connection Failed: " . $e->getMessage());
 }
 
@@ -82,7 +71,6 @@ function lastInsertId() {
     return $pdo->lastInsertId();
 }
 
-// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -126,9 +114,7 @@ function requireLogin($redirect_to = '/login.php') {
     }
 }
 
-/**
- * Redirect if not admin
- */
+
 function requireAdmin() {
     requireLogin();
     if (getUserType() !== 'admin') {
@@ -137,9 +123,7 @@ function requireAdmin() {
     }
 }
 
-/**
- * Redirect if not employee
- */
+
 function requireEmployee() {
     requireLogin();
     if (getUserType() !== 'employee') {

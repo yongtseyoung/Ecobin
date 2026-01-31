@@ -1,26 +1,19 @@
 <?php
-/**
- * Edit Existing Task
- * Modify task details, reassign, or change status
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'tasks';
 
 $admin_id = $_SESSION['user_id'];
 $task_id = $_GET['id'] ?? 0;
 
-// Get task details
 $task = getOne("SELECT * FROM tasks WHERE task_id = ?", [$task_id]);
 
 if (!$task) {
@@ -29,19 +22,16 @@ if (!$task) {
     exit;
 }
 
-// Check if task can be edited
 if ($task['status'] === 'completed' || $task['status'] === 'cancelled') {
     $_SESSION['error'] = "Cannot edit completed or cancelled tasks";
     header("Location: task_view.php?id=$task_id");
     exit;
 }
 
-// Get data for dropdowns
 $employees = getAll("SELECT employee_id, full_name, area_id FROM employees WHERE status = 'active' ORDER BY full_name");
 $areas = getAll("SELECT area_id, area_name, block FROM areas ORDER BY area_name");
 $bins = getAll("SELECT bin_id, bin_code, location_details, area_id, current_fill_level FROM bins ORDER BY bin_code");
 
-// Get error/success messages
 $error = $_SESSION['error'] ?? '';
 $success = $_SESSION['success'] ?? '';
 unset($_SESSION['error'], $_SESSION['success']);
@@ -599,7 +589,6 @@ unset($_SESSION['error'], $_SESSION['success']);
                 </div>
             </form>
 
-            <!-- Hidden form for cancel action -->
             <form id="cancelForm" method="POST" action="task_actions.php" style="display: none;">
                 <input type="hidden" name="action" value="cancel">
                 <input type="hidden" name="task_id" value="<?php echo $task_id; ?>">
@@ -608,7 +597,6 @@ unset($_SESSION['error'], $_SESSION['success']);
     </main>
 
     <script>
-        // Auto-fill area when employee is selected
         document.getElementById('assignedTo').addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const areaId = selectedOption.getAttribute('data-area');
@@ -617,7 +605,6 @@ unset($_SESSION['error'], $_SESSION['success']);
             }
         });
 
-        // Auto-fill area when bin is selected (if not disabled)
         const binSelect = document.getElementById('binSelect');
         if (!binSelect.disabled) {
             binSelect.addEventListener('change', function() {

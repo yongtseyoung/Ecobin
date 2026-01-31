@@ -1,9 +1,4 @@
-/* ================================================
-   ECOBIN - SMART WASTE MANAGEMENT SYSTEM
-   Main Stylesheet
-   ================================================ */
 
-/* ================ RESET & BASE ================ */
 * {
     margin: 0;
     padding: 0;
@@ -11,22 +6,19 @@
 }
 
 :root {
-    /* Color Scheme */
-    --primary-color: #2ecc71;      /* Green - eco-friendly */
-    --secondary-color: #27ae60;    /* Darker green */
-    --danger-color: #e74c3c;       /* Red - alerts */
-    --warning-color: #f39c12;      /* Orange - warnings */
-    --info-color: #3498db;         /* Blue - info */
-    --dark-color: #2c3e50;         /* Dark gray */
-    --light-color: #ecf0f1;        /* Light gray */
+    --primary-color: #2ecc71;      
+    --secondary-color: #27ae60;    
+    --danger-color: #e74c3c;       
+    --warning-color: #f39c12;      
+    --info-color: #3498db;         
+    --dark-color: #2c3e50;         
+    --light-color: #ecf0f1;        
     --white-color: #ffffff;
     
-    /* Shadows */
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
     --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
     --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
     
-    /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
@@ -43,7 +35,6 @@ body {
     color: var(--dark-color);
 }
 
-/* ================ LOGIN PAGE ================ */
 .login-container {
     width: 100%;
     max-width: 420px;
@@ -95,7 +86,6 @@ body {
     padding: 30px;
 }
 
-/* ================ FORMS ================ */
 .form-group {
     margin-bottom: 20px;
 }
@@ -132,7 +122,6 @@ body {
     color: #95a5a6;
 }
 
-/* ================ BUTTONS ================ */
 .btn {
     display: inline-block;
     padding: 12px 24px;
@@ -172,7 +161,6 @@ body {
     color: var(--white-color);
 }
 
-/* ================ ALERTS ================ */
 .alert {
     padding: 12px 15px;
     border-radius: var(--radius-md);
@@ -211,7 +199,6 @@ body {
     font-size: 18px;
 }
 
-/* ================ DASHBOARD LAYOUT ================ */
 .dashboard {
     min-height: 100vh;
     background: #f5f6fa;
@@ -277,7 +264,6 @@ body {
     font-weight: 600;
 }
 
-/* ================ DASHBOARD CONTENT ================ */
 .dashboard-container {
     max-width: 1200px;
     margin: 30px auto;
@@ -336,7 +322,6 @@ body {
     font-size: 14px;
 }
 
-/* ================ CARDS ================ */
 .card {
     background: var(--white-color);
     border-radius: var(--radius-lg);
@@ -359,7 +344,6 @@ body {
     padding: 20px;
 }
 
-/* ================ TABLE ================ */
 .table {
     width: 100%;
     border-collapse: collapse;
@@ -387,7 +371,6 @@ body {
     background: #f8f9fa;
 }
 
-/* ================ BADGES ================ */
 .badge {
     display: inline-block;
     padding: 4px 12px;
@@ -416,7 +399,6 @@ body {
     color: #0c5460;
 }
 
-/* ================ UTILITIES ================ */
 .text-center {
     text-align: center;
 }
@@ -429,7 +411,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* ================ RESPONSIVE ================ */
 @media (max-width: 768px) {
     .navbar {
         flex-direction: column;
@@ -445,7 +426,6 @@ body {
     }
 }
 
-/* ================ LOADING SPINNER ================ */
 .spinner {
     border: 3px solid var(--light-color);
     border-top: 3px solid var(--primary-color);

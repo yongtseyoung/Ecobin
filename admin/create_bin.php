@@ -1,26 +1,18 @@
 <?php
-/**
- * Create New Bin
- * Form to add new bins to the system
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'bins';
 
-// Get all areas for dropdown
 $areas = getAll("SELECT area_id, area_name, block FROM areas ORDER BY area_name");
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bin_code = trim($_POST['bin_code']);
     $area_id = $_POST['area_id'];
@@ -29,13 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bin_capacity = $_POST['bin_capacity'];
     $max_weight = $_POST['max_weight'];
     
-    // Validation
     $errors = [];
     
     if (empty($bin_code)) {
         $errors[] = "Bin code is required";
     } else {
-        // Check if bin code already exists
         $existing = getOne("SELECT bin_id FROM bins WHERE bin_code = ?", [$bin_code]);
         if ($existing) {
             $errors[] = "Bin code already exists. Please use a different code.";
@@ -64,7 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (empty($errors)) {
         try {
-            // Insert new bin (GPS will be automatically updated by ESP32)
             query("
                 INSERT INTO bins 
                 (area_id, bin_code, floor_number, location_details, bin_capacity, 

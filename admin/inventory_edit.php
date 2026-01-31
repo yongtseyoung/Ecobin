@@ -1,23 +1,16 @@
 <?php
-/**
- * Edit Inventory Item
- * Form for admins to edit existing inventory items
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check authentication - admins only
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'inventory';
 
-// Get inventory item ID
 $inventory_id = intval($_GET['id'] ?? 0);
 
 if (!$inventory_id) {
@@ -26,7 +19,6 @@ if (!$inventory_id) {
     exit;
 }
 
-// Get inventory item
 $item = getOne("SELECT * FROM inventory WHERE inventory_id = ?", [$inventory_id]);
 
 if (!$item) {
@@ -327,7 +319,6 @@ unset($_SESSION['error']);
                 </div>
             </form>
 
-            <!-- Quick Stock Actions -->
             <div class="stock-actions">
                 <h3>Quick Restock </h3>
 
@@ -361,7 +352,6 @@ unset($_SESSION['error']);
     </main>
 
     <script>
-        // Auto-update status based on quantity
         const currentQty = document.getElementById('currentQuantity');
         const minQty = document.getElementById('minimumQuantity');
         const statusSelect = document.getElementById('statusSelect');
@@ -370,7 +360,6 @@ unset($_SESSION['error']);
             const current = parseInt(currentQty.value) || 0;
             const minimum = parseInt(minQty.value) || 0;
 
-            // Auto-select status based on quantity
             if (current === 0) {
                 statusSelect.value = 'out_of_stock';
                 currentQty.style.borderColor = '#dc3545';
@@ -386,7 +375,6 @@ unset($_SESSION['error']);
         currentQty.addEventListener('input', updateStatus);
         minQty.addEventListener('input', updateStatus);
 
-        // Initial status check
         updateStatus();
     </script>
 </body>

@@ -1,29 +1,20 @@
 <?php
-/**
- * Admin Performance Overview - EcoBin Theme
- * View and compare all employees' performance
- */
 
 session_start();
 require_once '../config/database.php';
 require_once '../config/performance_calculator.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'employees';
 
-// Get all active employees
 $employees = getAll("SELECT * FROM employees WHERE status = 'active' ORDER BY full_name");
 
-// Get selected period
 $period_type = $_GET['period'] ?? 'current_month';
 
-// Calculate performance for all employees
 $all_performance = [];
 foreach ($employees as $employee) {
     $metrics = getEmployeePerformance($employee['employee_id'], $period_type);
@@ -32,12 +23,10 @@ foreach ($employees as $employee) {
     $all_performance[] = $metrics;
 }
 
-// Sort by performance score (highest first)
 usort($all_performance, function($a, $b) {
     return $b['performance_score'] <=> $a['performance_score'];
 });
 
-// Calculate team averages
 $team_avg_score = 0;
 $team_avg_completion = 0;
 $team_avg_ontime = 0;
@@ -50,7 +39,6 @@ if (count($all_performance) > 0) {
     $team_avg_attendance = array_sum(array_column($all_performance, 'attendance_rate')) / count($all_performance);
 }
 
-// Grade colors matching EcoBin theme
 $grade_colors = [
     'excellent' => '#27ae60',
     'good' => '#9db89a',
@@ -81,16 +69,13 @@ $grade_colors = [
             min-height: 100vh;
         }
 
-        /* ============================================
-           MAIN CONTENT
-           ============================================ */
+
         .main-content {
             margin-left: 250px;
             flex: 1;
             padding: 30px;
         }
 
-        /* Header */
         .page-header {
             margin-bottom: 30px;
         }
@@ -100,7 +85,6 @@ $grade_colors = [
             color: #435334;
         }
 
-        /* Welcome Card */
         .welcome-card {
             background: linear-gradient(135deg, #CEDEBD, #9db89a);
             border-radius: 15px;
@@ -120,7 +104,6 @@ $grade_colors = [
             opacity: 0.9;
         }
 
-        /* Period Selector */
         .period-selector {
             background: white;
             padding: 20px;
@@ -165,7 +148,6 @@ $grade_colors = [
             border-color: #435334;
         }
 
-        /* Team Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -204,7 +186,6 @@ $grade_colors = [
             letter-spacing: 0.5px;
         }
 
-        /* Performance Table */
         .performance-table {
             background: white;
             border-radius: 15px;
@@ -315,7 +296,6 @@ $grade_colors = [
             color: white;
         }
 
-        /* Insights Card */
         .insights-card {
             margin-top: 30px;
             padding: 25px;
@@ -349,7 +329,6 @@ $grade_colors = [
             color: #435334;
         }
 
-        /* Responsive */
         @media (max-width: 1200px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -379,14 +358,11 @@ $grade_colors = [
 <body>
     <?php include '../includes/admin_sidebar.php'; ?>
 
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <h1>Team Performance Overview</h1>
         </div>
 
-        <!-- Period Selector -->
         <div class="period-selector">
             <h3>Select Time Period</h3>
             <div class="period-buttons">
@@ -405,7 +381,6 @@ $grade_colors = [
             </div>
         </div>
 
-        <!-- Team Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value"><?php echo number_format($team_avg_score, 1); ?>%</div>
@@ -428,7 +403,6 @@ $grade_colors = [
             </div>
         </div>
 
-        <!-- Performance Rankings Table -->
         <div class="performance-table">
             <div class="table-header">
                 <h3>Employee Performance Rankings</h3>
@@ -516,7 +490,6 @@ $grade_colors = [
             </table>
         </div>
 
-        <!-- Insights Card -->
         <div class="insights-card">
             <h3>Performance Insights</h3>
             <ul>

@@ -1,27 +1,19 @@
 <?php
-/**
- * Employee Detail View for Admin - EcoBin Theme
- * Detailed performance view for a specific employee
- */
 
 session_start();
 require_once '../config/database.php';
 require_once '../config/performance_calculator.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'employees';
 
-// Get employee ID from URL
 $employee_id = $_GET['id'] ?? 0;
 $period_type = $_GET['period'] ?? 'current_month';
 
-// Get employee details
 $employee = getOne("SELECT e.*, a.area_name 
                     FROM employees e 
                     LEFT JOIN areas a ON e.area_id = a.area_id 
@@ -33,14 +25,11 @@ if (!$employee) {
     exit;
 }
 
-// Calculate performance
 $calculator = new PerformanceCalculator($employee_id, $period_type);
 $metrics = $calculator->calculatePerformance();
 
-// Get performance history
 $history = $calculator->getPerformanceHistory();
 
-// Get recent tasks
 $recent_tasks = getAll(
     "SELECT t.*, a.area_name, b.bin_code 
      FROM tasks t 
@@ -52,7 +41,6 @@ $recent_tasks = getAll(
     [$employee_id]
 );
 
-// Get recent attendance
 $recent_attendance = getAll(
     "SELECT * FROM attendance 
      WHERE employee_id = ? 
@@ -61,7 +49,6 @@ $recent_attendance = getAll(
     [$employee_id]
 );
 
-// Grade colors matching EcoBin theme
 $grade_colors = [
     'excellent' => '#27ae60',
     'good' => '#9db89a',
@@ -70,7 +57,6 @@ $grade_colors = [
     'poor' => '#e74c3c'
 ];
 
-// Get current date info
 $current_time = date('g:i A');
 $current_date = date('l, F j, Y');
 ?>
@@ -97,9 +83,6 @@ $current_date = date('l, F j, Y');
             min-height: 100vh;
         }
 
-        /* ============================================
-           SIDEBAR NAVIGATION
-           ============================================ */
         .sidebar {
             width: 250px;
             background: #435334;
@@ -185,16 +168,13 @@ $current_date = date('l, F j, Y');
             background: rgba(255, 255, 255, 0.2);
         }
 
-        /* ============================================
-           MAIN CONTENT
-           ============================================ */
+
         .main-content {
             margin-left: 250px;
             flex: 1;
             padding: 30px;
         }
 
-        /* Header */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -239,7 +219,6 @@ $current_date = date('l, F j, Y');
             color: white;
         }
 
-        /* Employee Header Card */
         .employee-header {
             background: linear-gradient(135deg, #CEDEBD, #9db89a);
             border-radius: 15px;
@@ -278,7 +257,6 @@ $current_date = date('l, F j, Y');
             font-weight: 600;
         }
 
-        /* Performance Summary */
         .performance-summary {
             display: grid;
             grid-template-columns: 300px 1fr;
@@ -286,7 +264,6 @@ $current_date = date('l, F j, Y');
             margin-bottom: 30px;
         }
 
-        /* Score Card */
         .score-card {
             background: white;
             padding: 30px;
@@ -356,7 +333,6 @@ $current_date = date('l, F j, Y');
             font-size: 13px;
         }
 
-        /* Metrics Grid */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -405,7 +381,6 @@ $current_date = date('l, F j, Y');
             margin-top: 8px;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -445,7 +420,6 @@ $current_date = date('l, F j, Y');
             color: #435334;
         }
 
-        /* Chart Section */
         .chart-section {
             background: white;
             padding: 30px;
@@ -460,7 +434,6 @@ $current_date = date('l, F j, Y');
             font-size: 18px;
         }
 
-        /* Data Tables */
         .data-tables {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -527,7 +500,6 @@ $current_date = date('l, F j, Y');
         .status-late { background: #fff3cd; color: #f39c12; }
         .status-absent { background: #f8d7da; color: #721c24; }
 
-        /* Responsive */
         @media (max-width: 1200px) {
             .performance-summary {
                 grid-template-columns: 1fr;
@@ -568,9 +540,7 @@ $current_date = date('l, F j, Y');
 </head>
 <body>
     <?php include '../includes/admin_sidebar.php'; ?>
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <h1>👤 Employee Performance Details</h1>
             <div class="header-info">
@@ -583,7 +553,6 @@ $current_date = date('l, F j, Y');
             ← Back to Team Overview
         </a>
 
-        <!-- Employee Header -->
         <div class="employee-header">
             <h2><?php echo htmlspecialchars($employee['full_name']); ?></h2>
             
@@ -621,9 +590,7 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Performance Summary -->
         <div class="performance-summary">
-            <!-- Overall Score -->
             <div class="score-card">
                 <div class="score-circle">
                     <div class="score-inner">
@@ -661,9 +628,7 @@ $current_date = date('l, F j, Y');
                 </div>
             </div>
 
-            <!-- Metrics Breakdown -->
             <div class="metrics-grid">
-                <!-- Completion Rate -->
                 <div class="metric-card">
                     <div class="metric-label">Task Completion Rate</div>
                     <div class="metric-value" style="color: #435334;">
@@ -675,7 +640,6 @@ $current_date = date('l, F j, Y');
                     <div class="metric-weight">Weight: 30% of overall score</div>
                 </div>
 
-                <!-- On-Time Rate -->
                 <div class="metric-card">
                     <div class="metric-label">On-Time Completion</div>
                     <div class="metric-value" style="color: #435334;">
@@ -687,7 +651,6 @@ $current_date = date('l, F j, Y');
                     <div class="metric-weight">Weight: 30% of overall score</div>
                 </div>
 
-                <!-- Attendance Rate -->
                 <div class="metric-card">
                     <div class="metric-label">Attendance Rate</div>
                     <div class="metric-value" style="color: #435334;">
@@ -699,7 +662,6 @@ $current_date = date('l, F j, Y');
                     <div class="metric-weight">Weight: 25% of overall score</div>
                 </div>
 
-                <!-- Efficiency -->
                 <div class="metric-card">
                     <div class="metric-label">Efficiency Score</div>
                     <div class="metric-value" style="color: #435334;">
@@ -713,7 +675,6 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Detailed Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">Tasks Assigned</div>
@@ -749,15 +710,12 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Performance Trend Chart -->
         <div class="chart-section">
             <h3>Performance Trend (Last 6 Months)</h3>
             <canvas id="performanceChart"></canvas>
         </div>
 
-        <!-- Recent Activity Tables -->
         <div class="data-tables">
-            <!-- Recent Tasks -->
             <div class="data-table">
                 <div class="table-header">
                     <h3>Recent Tasks</h3>
@@ -801,7 +759,6 @@ $current_date = date('l, F j, Y');
                 </table>
             </div>
 
-            <!-- Recent Attendance -->
             <div class="data-table">
                 <div class="table-header">
                     <h3>Recent Attendance</h3>
@@ -845,7 +802,6 @@ $current_date = date('l, F j, Y');
     </div>
 
     <script>
-        // Performance Trend Chart with EcoBin colors
         const ctx = document.getElementById('performanceChart').getContext('2d');
         const performanceChart = new Chart(ctx, {
             type: 'line',

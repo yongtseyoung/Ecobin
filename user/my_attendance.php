@@ -1,15 +1,10 @@
 <?php
-/**
- * Employee Attendance Dashboard
- * View attendance history and statistics
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 require_once '../config/languages.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     header("Location: ../login.php");
     exit;
@@ -18,16 +13,12 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
 $employee_id = $_SESSION['user_id'];
 $employee = getOne("SELECT e.*, a.area_name FROM employees e LEFT JOIN areas a ON e.area_id = a.area_id WHERE e.employee_id = ?", [$employee_id]);
 
-// Load language preference
 $_SESSION['language'] = $employee['language'] ?? 'en';
 
-// Set current page for sidebar
 $current_page = 'attendance';
 
-// Get filter
 $month_filter = $_GET['month'] ?? date('Y-m');
 
-// Get attendance records for selected month
 $attendance_records = getAll(
     "SELECT * FROM attendance 
      WHERE employee_id = ? 
@@ -36,19 +27,16 @@ $attendance_records = getAll(
     [$employee_id, $month_filter]
 );
 
-// Calculate monthly stats - Only present, late, absent
 $total_days = count($attendance_records);
 $present_days = count(array_filter($attendance_records, fn($a) => $a['status'] === 'present'));
 $late_days = count(array_filter($attendance_records, fn($a) => $a['status'] === 'late'));
 $absent_days = count(array_filter($attendance_records, fn($a) => $a['status'] === 'absent'));
 $total_hours = array_sum(array_column($attendance_records, 'work_hours'));
 
-// Calculate attendance rate (present + late = attended)
 $working_days = getWorkingDaysInMonth($month_filter);
 $attended_days = $present_days + $late_days;
 $attendance_rate = $working_days > 0 ? ($attended_days / $working_days) * 100 : 0;
 
-// Get this week's stats
 $week_start = date('Y-m-d', strtotime('monday this week'));
 $week_end = date('Y-m-d', strtotime('sunday this week'));
 $week_attendance = getAll(
@@ -56,19 +44,15 @@ $week_attendance = getAll(
     [$employee_id, $week_start, $week_end]
 );
 
-// Week stats - Only present + late
 $week_present = count(array_filter($week_attendance, fn($a) => in_array($a['status'], ['present', 'late'])));
 $week_hours = array_sum(array_column($week_attendance, 'work_hours'));
 
-// Check today's status
 $today = date('Y-m-d');
 $today_attendance = getOne("SELECT * FROM attendance WHERE employee_id = ? AND attendance_date = ?", [$employee_id, $today]);
 
-// Check current time for warnings
 $current_hour = (int)date('H');
 $current_minute = (int)date('i');
 
-// Function to get working days in a month
 function getWorkingDaysInMonth($month) {
     $start = new DateTime($month . '-01');
     $end = new DateTime($start->format('Y-m-t'));
@@ -77,7 +61,7 @@ function getWorkingDaysInMonth($month) {
     
     $working_days = 0;
     foreach ($period as $date) {
-        if ($date->format('N') < 6) { // Monday to Friday
+        if ($date->format('N') < 6) {
             $working_days++;
         }
     }
@@ -115,7 +99,6 @@ function getWorkingDaysInMonth($month) {
             color: #435334;
         }
 
-        /* Page Header */
         .page-header {
             margin-bottom: 30px;
         }
@@ -152,7 +135,6 @@ function getWorkingDaysInMonth($month) {
             opacity: 0.3;
         }
 
-        /* Quick Action Card */
         .quick-action-card {
             background: white;
             border-radius: 20px;
@@ -197,7 +179,6 @@ function getWorkingDaysInMonth($month) {
             font-size: 24px;
         }
 
-        /* Time Status Notice */
         .time-status-notice {
             padding: 15px 20px;
             border-radius: 10px;
@@ -225,7 +206,6 @@ function getWorkingDaysInMonth($month) {
             border: 2px solid #f5c6cb;
         }
 
-        /* Current Time Display */
         .current-time-display {
             background: #f8f9fa;
             padding: 12px 20px;
@@ -245,7 +225,6 @@ function getWorkingDaysInMonth($month) {
             font-size: 16px;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -293,14 +272,12 @@ function getWorkingDaysInMonth($month) {
             color: #435334;
         }
 
-        /* Content Grid */
         .content-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 30px;
         }
 
-        /* Attendance Table Card */
         .table-card {
             background: white;
             border-radius: 20px;
@@ -391,7 +368,6 @@ function getWorkingDaysInMonth($month) {
             color: #721c24;
         }
 
-        /* Sidebar Cards */
         .sidebar-cards {
             display: flex;
             flex-direction: column;
@@ -492,7 +468,6 @@ function getWorkingDaysInMonth($month) {
             color: #435334;
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -509,7 +484,6 @@ function getWorkingDaysInMonth($month) {
             margin-bottom: 10px;
         }
 
-/* Responsive */
         @media (max-width: 1200px) {
             .content-grid {
                 grid-template-columns: 1fr;
@@ -819,26 +793,22 @@ function getWorkingDaysInMonth($month) {
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <h1>
                 <?php echo t('my_attendance'); ?>
             </h1>
         </div>
 
-        <!-- Quick Action -->
         <div class="quick-action-card">
             <a href="attendance_checkin.php" class="action-btn">
                 <i class="fa-solid fa-right-to-bracket icon"></i>
                 <span><?php echo t('go_to_check_in_out'); ?></span>
             </a>
-            <!-- Current Time -->
             <div class="current-time-display">
                 <?php echo t('current_time'); ?>: <strong><?php echo date('g:i A'); ?></strong> | <?php echo date('l, F j, Y'); ?>
             </div>
         </div>
 
-        <!-- Monthly Stats -->
         <div class="stats-grid">
             <div class="stat-card highlight">
                 <div class="stat-icon"><i class="fa-solid fa-calendar-check icon-main"></i></div>
@@ -865,9 +835,7 @@ function getWorkingDaysInMonth($month) {
             </div>
         </div>
 
-        <!-- Content Grid -->
         <div class="content-grid">
-            <!-- Attendance Records Table -->
             <div class="table-card">
                 <div class="table-header">
                     <h3>
@@ -930,10 +898,8 @@ function getWorkingDaysInMonth($month) {
                 <?php endif; ?>
             </div>
 
-            <!-- Sidebar -->
             <div class="sidebar-cards">
 
-                <!-- Today's Status -->
                 <?php if ($today_attendance): ?>
                     <div class="today-status-card">
                         <h4>

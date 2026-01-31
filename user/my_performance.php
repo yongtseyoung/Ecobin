@@ -1,15 +1,10 @@
 <?php
-/**
- * Employee Performance Dashboard - EcoBin Theme
- * Shows detailed performance metrics with visualizations
- */
 
 session_start();
 require_once '../config/database.php';
 require_once '../config/performance_calculator.php';
 require_once '../config/languages.php';
 
-// Check authentication
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
     header("Location: ../login.php");
     exit;
@@ -18,7 +13,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'employee') {
 $employee_id = $_SESSION['user_id'];
 $employee_name = $_SESSION['full_name'] ?? 'Employee';
 
-// Set current page for sidebar
 $current_page = 'performance';
 
 $user_id = $_SESSION['user_id'];
@@ -29,22 +23,17 @@ $employee = getOne("
     WHERE e.employee_id = ?
 ", [$user_id]);
 
-// Load language preference
 $_SESSION['language'] = $employee['language'] ?? 'en';
 
-// Get selected period (default: current_month)
 $period_type = $_GET['period'] ?? 'current_month';
 $custom_start = $_GET['start'] ?? null;
 $custom_end = $_GET['end'] ?? null;
 
-// Calculate performance metrics
 $calculator = new PerformanceCalculator($user_id, $period_type, $custom_start, $custom_end);
 $metrics = $calculator->calculatePerformance();
 
-// Get performance history for chart
 $history = $calculator->getPerformanceHistory();
 
-// Get period display name
 function getPeriodDisplayName($period_type, $start, $end) {
     switch ($period_type) {
         case 'current_month':
@@ -64,7 +53,6 @@ function getPeriodDisplayName($period_type, $start, $end) {
 
 $period_display = getPeriodDisplayName($period_type, $metrics['period_start'], $metrics['period_end']);
 
-// Grade configuration
 $grade_config = [
     'excellent' => ['color' => '#27ae60', 'label' => t('grade_excellent'), 'icon' => '<i class="fa-solid fa-trophy"></i>'],
     'good' => ['color' => '#9db89a', 'label' => t('grade_good'), 'icon' => '<i class="fa-solid fa-thumbs-up"></i>'],
@@ -75,7 +63,6 @@ $grade_config = [
 
 $current_grade = $grade_config[$metrics['performance_grade']];
 
-// Get current date info
 $current_time = date('g:i A');
 $current_date = date('l, F j, Y');
 ?>
@@ -113,7 +100,6 @@ $current_date = date('l, F j, Y');
             color: #435334;
         }
 
-        /* Page Header */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -164,7 +150,6 @@ $current_date = date('l, F j, Y');
             transform: translateY(-2px);
         }
 
-        /* Welcome Card */
         .welcome-card {
             background: linear-gradient(135deg, #CEDEBD, #9db89a);
             border-radius: 15px;
@@ -187,7 +172,6 @@ $current_date = date('l, F j, Y');
             opacity: 0.9;
         }
 
-        /* Period Selector */
         .period-selector {
             background: white;
             padding: 20px;
@@ -238,7 +222,6 @@ $current_date = date('l, F j, Y');
             border-color: #435334;
         }
 
-        /* Score Showcase */
         .score-showcase {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -317,7 +300,6 @@ $current_date = date('l, F j, Y');
             font-size: 14px;
         }
 
-        /* Breakdown Cards */
         .breakdown-cards {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -379,7 +361,6 @@ $current_date = date('l, F j, Y');
             margin-top: 10px;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -419,7 +400,6 @@ $current_date = date('l, F j, Y');
             color: #435334;
         }
 
-        /* Chart Container */
         .chart-container {
             background: white;
             padding: 30px;
@@ -437,7 +417,6 @@ $current_date = date('l, F j, Y');
             gap: 10px;
         }
 
-/* Responsive */
         @media (max-width: 1200px) {
             .score-showcase {
                 grid-template-columns: 1fr;
@@ -759,9 +738,7 @@ $current_date = date('l, F j, Y');
 <body>
     <?php include '../includes/sidebar.php'; ?>
 
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
             <h1>
                 <?php echo t('my_performance_report'); ?>
@@ -777,12 +754,10 @@ $current_date = date('l, F j, Y');
             <?php echo t('back_to_dashboard'); ?>
         </a>
 
-        <!-- Welcome Card -->
         <div class="welcome-card">
             <p><?php echo t('performance_report_for'); ?> <strong><?php echo htmlspecialchars($period_display); ?></strong></p>
         </div>
 
-        <!-- Period Selector -->
         <div class="period-selector">
             <h3>
                 <i class="fa-solid fa-calendar-days"></i>
@@ -804,9 +779,7 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Main Score Showcase -->
         <div class="score-showcase">
-            <!-- Overall Score -->
             <div class="main-score-card">
                 <div class="score-circle">
                     <div class="score-inner">
@@ -832,9 +805,7 @@ $current_date = date('l, F j, Y');
                 </p>
             </div>
 
-            <!-- Performance Breakdown -->
             <div class="breakdown-cards">
-                <!-- Task Completion Rate -->
                 <div class="breakdown-card">
                     <h4>
                         <?php echo t('task_completion_rate'); ?>
@@ -855,7 +826,6 @@ $current_date = date('l, F j, Y');
                     <div class="breakdown-weight"><?php echo t('weight_30_percent'); ?></div>
                 </div>
 
-                <!-- On-Time Rate -->
                 <div class="breakdown-card">
                     <h4>
                         <?php echo t('on_time_completion_rate'); ?>
@@ -876,7 +846,6 @@ $current_date = date('l, F j, Y');
                     <div class="breakdown-weight"><?php echo t('weight_30_percent'); ?></div>
                 </div>
 
-                <!-- Attendance Rate -->
                 <div class="breakdown-card">
                     <h4>
                         <?php echo t('attendance_rate'); ?>
@@ -897,7 +866,6 @@ $current_date = date('l, F j, Y');
                     <div class="breakdown-weight"><?php echo t('weight_25_percent'); ?></div>
                 </div>
 
-                <!-- Efficiency Score -->
                 <div class="breakdown-card">
                     <h4>
                         <?php echo t('efficiency_score'); ?>
@@ -920,7 +888,6 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Key Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon"><i class="fa-solid fa-clipboard-list icon-main"></i></div>
@@ -971,7 +938,6 @@ $current_date = date('l, F j, Y');
             </div>
         </div>
 
-        <!-- Performance Trend Chart -->
         <div class="chart-container">
             <h3>
                 <?php echo t('performance_trend_6_months'); ?>
@@ -981,7 +947,6 @@ $current_date = date('l, F j, Y');
     </div>
 
     <script>
-        // Translations for Chart.js
         const chartTranslations = {
             overallScore: "<?php echo t('overall_score'); ?>",
             completionRate: "<?php echo t('completion_rate_chart'); ?>",
@@ -989,7 +954,6 @@ $current_date = date('l, F j, Y');
             attendanceRate: "<?php echo t('attendance_rate_chart'); ?>"
         };
 
-        // Performance Trend Chart with EcoBin colors
         const ctx = document.getElementById('performanceChart').getContext('2d');
         const performanceChart = new Chart(ctx, {
             type: 'line',

@@ -1,31 +1,22 @@
 <?php
-/**
- * EcoBin Admin Notifications Page
- * View all system notifications
- */
 
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 require_once '../config/database.php';
 
-// Check if user is logged in and is admin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
-// Set current page for sidebar
 $current_page = 'dashboard';
 
-// Get admin info
 $admin_id = $_SESSION['user_id'];
 $admin_name = $_SESSION['full_name'] ?? 'Admin';
 
-// Get all notifications
 try {
     $all_notifications = [];
     
-    // 1. Pending Leave Requests (All time)
     $leave_notifs = getAll("
         SELECT 
             'leave_request' as type,
@@ -42,7 +33,6 @@ try {
     ");
     if ($leave_notifs) $all_notifications = array_merge($all_notifications, $leave_notifs);
     
-    // 2. Pending Maintenance Reports (All time)
     $maintenance_notifs = getAll("
         SELECT 
             'maintenance' as type,
@@ -70,7 +60,6 @@ try {
     ");
     if ($maintenance_notifs) $all_notifications = array_merge($all_notifications, $maintenance_notifs);
     
-    // 3. Full Bins (All current full bins)
     $bin_notifs = getAll("
         SELECT 
             'bin_full' as type,
@@ -86,7 +75,6 @@ try {
     ");
     if ($bin_notifs) $all_notifications = array_merge($all_notifications, $bin_notifs);
     
-    // 4. Low Stock Inventory (All current low stock items)
     $inventory_notifs = getAll("
         SELECT 
             'inventory_low' as type,
@@ -102,7 +90,6 @@ try {
     ");
     if ($inventory_notifs) $all_notifications = array_merge($all_notifications, $inventory_notifs);
     
-    // 5. Out of Stock Inventory (All current out of stock items)
     $outofstock_notifs = getAll("
         SELECT 
             'inventory_out' as type,
@@ -117,7 +104,6 @@ try {
     ");
     if ($outofstock_notifs) $all_notifications = array_merge($all_notifications, $outofstock_notifs);
     
-    // 6. Pending Supply Requests (All time)
     $supply_notifs = getAll("
         SELECT 
             'supply_request' as type,
@@ -140,12 +126,10 @@ try {
     ");
     if ($supply_notifs) $all_notifications = array_merge($all_notifications, $supply_notifs);
     
-    // Sort all notifications by timestamp (most recent first)
     usort($all_notifications, function($a, $b) {
         return strtotime($b['timestamp']) - strtotime($a['timestamp']);
     });
     
-    // Separate into "New" (today) and "Earlier" (older)
     $new_notifications = [];
     $earlier_notifications = [];
     
@@ -163,7 +147,6 @@ try {
     $earlier_notifications = [];
 }
 
-// Get current date info
 $current_time = date('g:i A');
 $current_date = date('l, F j, Y');
 ?>
@@ -195,7 +178,6 @@ $current_date = date('l, F j, Y');
             max-width: 900px;
         }
 
-        /* Header */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -208,7 +190,6 @@ $current_date = date('l, F j, Y');
             color: #435334;
         }
 
-        /* Tabs */
         .tabs {
             display: flex;
             gap: 20px;
@@ -237,7 +218,6 @@ $current_date = date('l, F j, Y');
             border-bottom-color: #435334;
         }
 
-        /* Notifications Container */
         .notifications-wrapper {
             background: white;
             border-radius: 15px;
@@ -245,7 +225,6 @@ $current_date = date('l, F j, Y');
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        /* Section Header */
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -274,7 +253,6 @@ $current_date = date('l, F j, Y');
             color: #1e8449;
         }
 
-        /* Notification Item */
         .notification-item {
             display: flex;
             padding: 15px;
@@ -347,7 +325,6 @@ $current_date = date('l, F j, Y');
             font-size: 10px;
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -370,12 +347,10 @@ $current_date = date('l, F j, Y');
             color: #999;
         }
 
-        /* Section Divider */
         .section-divider {
             margin: 30px 0;
         }
 
-        /* Collapsed state */
         .notifications-list.collapsed {
             max-height: 0;
             overflow: hidden;
@@ -387,7 +362,6 @@ $current_date = date('l, F j, Y');
             transition: max-height 0.3s ease;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .main-content {
                 margin-left: 70px;
@@ -395,7 +369,6 @@ $current_date = date('l, F j, Y');
             }
         }
 
-/* Back Button */
         .back-btn {
             display: flex;
             align-items: center;
@@ -425,19 +398,16 @@ $current_date = date('l, F j, Y');
     <?php include '../includes/admin_sidebar.php'; ?>
 
     <main class="main-content">
-            <!-- Header -->
         <div class="page-header">
             <h1>Notifications</h1>
             <a href="dashboard.php" class="back-btn">
                 <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
             </a>
         </div>
-        <!-- Tabs -->
         <div class="tabs">
             <button class="tab active">All</button>
         </div>
 
-        <!-- Notifications Container -->
         <div class="notifications-wrapper">
             <?php if (empty($new_notifications) && empty($earlier_notifications)): ?>
                 <div class="empty-state">
@@ -447,7 +417,6 @@ $current_date = date('l, F j, Y');
                 </div>
             <?php else: ?>
                 
-                <!-- New Section (Today) -->
                 <?php if (!empty($new_notifications)): ?>
                 <div class="notification-section">
                     <div class="section-header">
@@ -464,7 +433,6 @@ $current_date = date('l, F j, Y');
                             $display_count++;
                         ?>
                             <?php
-                                // Determine link based on type
                                 $link = '#';
                                 switch($notif['type']) {
                                     case 'leave_request':
@@ -485,7 +453,6 @@ $current_date = date('l, F j, Y');
                                         break;
                                 }
                                 
-                                // Priority class
                                 $priorityClass = '';
                                 switch($notif['priority']) {
                                     case 'high':
@@ -523,7 +490,6 @@ $current_date = date('l, F j, Y');
                 </div>
                 <?php endif; ?>
 
-<!-- Earlier Section (Last 7 days) -->
                 <?php if (!empty($earlier_notifications)): ?>
                 <div class="section-divider"></div>
                 <div class="notification-section">
@@ -537,7 +503,6 @@ $current_date = date('l, F j, Y');
                     <div id="earlier-notifications" class="notifications-list">
                         <?php foreach ($earlier_notifications as $notif): ?>
                             <?php
-                                // Determine link based on type
                                 $link = '#';
                                 switch($notif['type']) {
                                     case 'leave_request':
@@ -558,7 +523,6 @@ $current_date = date('l, F j, Y');
                                         break;
                                 }
                                 
-                                // Priority class
                                 $priorityClass = '';
                                 switch($notif['priority']) {
                                     case 'high':
@@ -597,11 +561,9 @@ $current_date = date('l, F j, Y');
             const button = event.target;
             
             if (element.classList.contains('collapsed')) {
-                // Expand to show all
                 element.classList.remove('collapsed');
                 button.textContent = 'Show less';
             } else {
-                // Collapse to hide earlier notifications
                 element.classList.add('collapsed');
                 button.textContent = 'See all (' + <?php echo count($earlier_notifications); ?> + ')';
             }
