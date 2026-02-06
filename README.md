@@ -8,6 +8,10 @@ Cleaner's Dashboard
 <img width="241" height="518" alt="image" src="https://github.com/user-attachments/assets/b498c604-147e-4bcf-aa2d-4b3212cac967" />
 <img width="240" height="518" alt="image" src="https://github.com/user-attachments/assets/a72be931-cfdd-405d-b62e-8526f4bc93b9" />
 
+EcoBin's SmartBin
+![WhatsApp Image 2026-02-06 at 15 01 40](https://github.com/user-attachments/assets/dcf5077e-79a7-46a3-8bbd-cda2b8cdceda)
+
+
 
 # Features
 - User Account Management - Manage Users accounts 
