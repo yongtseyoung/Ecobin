@@ -10,6 +10,8 @@ Cleaner's Dashboard
 
 EcoBin's SmartBin
 ![WhatsApp Image 2026-02-06 at 15 01 40](https://github.com/user-attachments/assets/dcf5077e-79a7-46a3-8bbd-cda2b8cdceda)
+![WhatsApp Image 2026-02-06 at 15 02 32](https://github.com/user-attachments/assets/37879327-bd7b-41e5-9c1a-2866c3663519)
+![WhatsApp Image 2026-02-06 at 15 02 32](https://github.com/user-attachments/assets/12d24796-fd80-46e7-bb23-0cdea2b3ad1b)
 
 
 
