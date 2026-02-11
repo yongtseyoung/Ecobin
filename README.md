@@ -1,4 +1,4 @@
-# Ecobin: Smart Waste Management System
+![WhatsApp Image 2026-02-11 at 13 48 41](https://github.com/user-attachments/assets/beb4dba7-876e-449a-80d9-5524a2af136e)# Ecobin: Smart Waste Management System
 
 Admin's Dashboard
 <img width="1904" height="944" alt="image" src="https://github.com/user-attachments/assets/90645a1a-f15f-4162-9a3b-09dfe4c37389" />
@@ -11,7 +11,9 @@ Cleaner's Dashboard
 EcoBin's SmartBin
 ![WhatsApp Image 2026-02-06 at 15 01 40](https://github.com/user-attachments/assets/dcf5077e-79a7-46a3-8bbd-cda2b8cdceda)
 ![WhatsApp Image 2026-02-06 at 15 02 32](https://github.com/user-attachments/assets/37879327-bd7b-41e5-9c1a-2866c3663519)
-![WhatsApp Image 2026-02-06 at 15 02 32](https://github.com/user-attachments/assets/12d24796-fd80-46e7-bb23-0cdea2b3ad1b)
+![WhatsApp Image 2026-02-11 at 13 48 41](https://github.com/user-attachments/assets/8a0831cd-18c6-4e42-866e-1efb730c3fc9)
+
+
 
 
 
