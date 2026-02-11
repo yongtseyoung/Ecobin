@@ -20,27 +20,27 @@ EcoBin is a smart waste management system that uses IoT technology to improve ho
 
 
 # Key Features
-- **Real-Time Bin Monitoring** - Track fill levels, weight, and GPS location via IoT sensors
-- **Automated Task Assignment** - System creates collection tasks when bins reach 80% capacity
-- **Attendance System** - Clock-in/out system with GPS verification
-- **Employee Performance** Tracker - Comprehensive employee performance analytics
-- **Waste Collection Analytics** - Generate insights on collection patterns and waste trends
-- **Inventory Management** - Track cleaning supplies and automate restock requests
-- **Leave Management** - Digital leave application and approval workflow
-- **Maintenance & Issue Reporting** - Submit and track facility maintenance issues
+1. **Real-Time Bin Monitoring** - Track fill levels, weight, and GPS location via IoT sensors
+2. **Automated Task Assignment** - System creates collection tasks when bins reach 80% capacity
+3. **Attendance System** - Clock-in/out system with GPS verification
+4. **Employee Performance** Tracker - Comprehensive employee performance analytics
+5. **Waste Collection Analytics** - Generate insights on collection patterns and waste trends
+6. **Inventory Management** - Track cleaning supplies and automate restock requests
+7. **Leave Management** - Digital leave application and approval workflow
+8. **Maintenance & Issue Reporting** - Submit and track facility maintenance issues
 
 # IoT Components
-- HC-SR04 Ultrasonic Sensor Module - Measures the fill level of the bin
-- Battery holder 18650 2-slot - Holds the 18650 batteries to provide power to the system.
-- Battery Li-ion 18650 3.7V 2000mAH - Rechargeable batteries that power the entire EcoBin system.
-- Servo Motor TS90A - Controls the lid of the bin.
-- Base Board For ESP32 DevKit V1 - An expansion platform to easily connect other components to the ESP32 microcontroller.
-- ESP32 DevKit V1 - The main microcontroller that processes sensor data, controls the servo motor, connects to Wi-Fi, and   sends bin status to the EcoBin website.
-- MH Infrared Obstacle Sensor Module - Used to trigger the servo to open the lid.
-- GY-NEO6MV2 GPS Network Module - Provides real-time GPS location of the bin,
-- Jumper wires - To connect all electronic components together on the board
-- hx711 load cell amplifier module - Amplifies and converts the analog signal from the weight sensor into a digital signal that can be read by the ESP32 microcontroller for accurate waste weight measurement.
-- Body weight sensor 50kg - Detects the weight of the waste inside the bin by measuring the force applied on the sensor platform, providing data for weight-based waste analysis in the EcoBin system.
+1. **HC-SR04 Ultrasonic Sensor Module** - Measures the fill level of the bin
+2. **Battery holder 18650 2-slot** - Holds the 18650 batteries to provide power to the system.
+3. **Battery Li-ion 18650 3.7V 2000mAH** - Rechargeable batteries that power the entire EcoBin system.
+4. **Servo Motor TS90A** - Controls the lid of the bin.
+5. **Base Board For ESP32 DevKit V1** - An expansion platform to easily connect other components to the ESP32 microcontroller.
+6. **ESP32 DevKit V1** - The main microcontroller that processes sensor data, controls the servo motor, connects to Wi-Fi, and   sends bin status to the EcoBin website.
+7. **MH Infrared Obstacle Sensor Module** - Used to trigger the servo to open the lid.
+8. **GY-NEO6MV2 GPS Network Module** - Provides real-time GPS location of the bin,
+9. **Jumper wires** - To connect all electronic components together on the board
+10. **Hx711 load cell amplifier module** - Amplifies and converts the analog signal from the weight sensor into a digital signal that can be read by the ESP32 microcontroller for accurate waste weight measurement.
+11. **Body weight sensor 50kg** - Detects the weight of the waste inside the bin by measuring the force applied on the sensor platform, providing data for weight-based waste analysis in the EcoBin system.
 
 # Technology Stack
 **Frontend:**
