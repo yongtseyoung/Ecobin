@@ -1,6 +1,6 @@
 # Ecobin: Smart Waste Management System
 
-EcoBin is a smart waste management system that uses IoT technology to improve how waste is collected. The system uses sensors installed inside waste bins to monitor the bin fill level in real time. When a bin is nearly full, the system automatically sends alerts and assigns collection tasks through a web-based management platform. The platform also helps manage cleaner attendance, task assignments, maintenance reports, inventory tracking, and performance monitoring. 
+EcoBin is a smart waste management system that uses IoT technology to improve how waste is collected. The system uses sensors installed inside waste bins to monitor the bin fill level in real time. When a bin is nearly full, the system automatically sends alerts and automatically assigns collection tasks through a web-based management platform. The platform also helps manage cleaner attendance, task assignments, maintenance reports, inventory tracking, and performance monitoring. 
 
 
 ## Admin's Dashboard
@@ -11,7 +11,7 @@ EcoBin is a smart waste management system that uses IoT technology to improve ho
 <img width="241" height="518" alt="image" src="https://github.com/user-attachments/assets/b498c604-147e-4bcf-aa2d-4b3212cac967" />
 <img width="240" height="518" alt="image" src="https://github.com/user-attachments/assets/a72be931-cfdd-405d-b62e-8526f4bc93b9" />
 
-EcoBin's SmartBin
+## EcoBin's SmartBin
 ![WhatsApp Image 2026-02-06 at 15 01 40](https://github.com/user-attachments/assets/dcf5077e-79a7-46a3-8bbd-cda2b8cdceda)
 ![WhatsApp Image 2026-02-06 at 15 02 32](https://github.com/user-attachments/assets/37879327-bd7b-41e5-9c1a-2866c3663519)
 ![WhatsApp Image 2026-02-11 at 13 48 41](https://github.com/user-attachments/assets/8a0831cd-18c6-4e42-866e-1efb730c3fc9)
@@ -19,17 +19,15 @@ EcoBin's SmartBin
 
 
 
-
-# Features
-- User Account Management - Manage Users accounts 
-- Bin Monitoring - Track fill levels, weight, and location via IoT sensors
-- Attendance System - Clock-in/out system with GPS verification
-- Task Management - Manage assigned tasks.
-- Employee Performance Tracker - Comprehensive employee performance analytics
-- Waste Collection Analytics - Generate insights on collection patterns and waste trends
-- Inventory Management - Track cleaning supplies and automate restock requests
-- Leave Management - Digital leave application and approval workflow
-- Maintenance & Issue Reporting - Submit and track facility maintenance issues
+# Key Features
+- **Real-Time Bin Monitoring** - Track fill levels, weight, and GPS location via IoT sensors
+- **Automated Task Assignment** - System creates collection tasks when bins reach 80% capacity
+- **Attendance System** - Clock-in/out system with GPS verification
+- **Employee Performance** Tracker - Comprehensive employee performance analytics
+- **Waste Collection Analytics** - Generate insights on collection patterns and waste trends
+- **Inventory Management** - Track cleaning supplies and automate restock requests
+- **Leave Management** - Digital leave application and approval workflow
+- **Maintenance & Issue Reporting** - Submit and track facility maintenance issues
 
 # IoT Components
 - HC-SR04 Ultrasonic Sensor Module - Measures the fill level of the bin
@@ -44,13 +42,48 @@ EcoBin's SmartBin
 - hx711 load cell amplifier module - Amplifies and converts the analog signal from the weight sensor into a digital signal that can be read by the ESP32 microcontroller for accurate waste weight measurement.
 - Body weight sensor 50kg - Detects the weight of the waste inside the bin by measuring the force applied on the sensor platform, providing data for weight-based waste analysis in the EcoBin system.
 
+# Technology Stack
+**Frontend:**
+- HTML5
+- CSS3
+- Javascript
+- Responsive design for mobile access
 
+**Backend:**
+- PHP
+- MySQL
+- Apache Web Server
 
+**Development Tools**
+- Visual Studio Code
+- Arduino IDE (for ESP32 programming)
+- XAMPP
+- GitHub
 
+## System Module
+### For Administrators
+1. **User Account Management** - Create and manage employee accounts
+2. **Bin Monitoring** - Real-time dashboard monitoring of all bins
+3. **Task Management** - Assign and track collection tasks
+4. **Attendance System** - View employee attendance logs
+5. **Performance Tracker** - Monitor cleaner performance
+6. **Waste Analytics** - Generate reports and insights
+7. **Inventory Management** - Manage cleaning supplies
+8. **Leave Management** - Approve/reject leave requests
+9. **Maintenance Reports** - Handle facility issues
 
+### For Cleaners
+1. **Dashboard** - View Brief statistics and alerts.
+2. **Task Management** - View assigned tasks,Complete and report collections
+3. **Attendance** - Clock in/out with GPS
+4. **Performance** - View personal performance metrics
+5. **Inventory** - Take supplies and request restocks
+6. **Leave Requests** - Apply for leave digitally
+7. **Maintenance Reports** - Report bin or facility issues
 
-
-
+## Author
+**Cyril Leopold Yong Tse Young**  
+Network Engineering Student, Universiti Malaysia Sabah  
 
 
 
