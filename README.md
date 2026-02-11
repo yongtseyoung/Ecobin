@@ -1,10 +1,13 @@
-![WhatsApp Image 2026-02-11 at 13 48 41](https://github.com/user-attachments/assets/beb4dba7-876e-449a-80d9-5524a2af136e)# Ecobin: Smart Waste Management System
+# Ecobin: Smart Waste Management System
 
-Admin's Dashboard
+EcoBin is a smart waste management system that uses IoT technology to improve how waste is collected. The system uses sensors installed inside waste bins to monitor the bin fill level in real time. When a bin is nearly full, the system automatically sends alerts and assigns collection tasks through a web-based management platform. The platform also helps manage cleaner attendance, task assignments, maintenance reports, inventory tracking, and performance monitoring. 
+
+
+## Admin's Dashboard
 <img width="1904" height="944" alt="image" src="https://github.com/user-attachments/assets/90645a1a-f15f-4162-9a3b-09dfe4c37389" />
 
-Cleaner's Dashboard
 
+## Cleaner's Dashboard
 <img width="241" height="518" alt="image" src="https://github.com/user-attachments/assets/b498c604-147e-4bcf-aa2d-4b3212cac967" />
 <img width="240" height="518" alt="image" src="https://github.com/user-attachments/assets/a72be931-cfdd-405d-b62e-8526f4bc93b9" />
 
